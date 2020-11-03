@@ -9,7 +9,7 @@ pipeline {
         }
         stage('Slack integration') {
             steps {
-                slackSend  baseUrl:'prashantiworkspace.slack.com' channel: 'spring', color: 'blue', message: 'welcome', teamDomain: 'prashanti', tokenCredentialId: 'Slack', username: 'prawin.nageswaran'
+                slackSend  baseUrl:'prashantiworkspace.slack.com',channel: 'spring', color: 'blue', message: 'welcome', teamDomain: 'prashanti', tokenCredentialId: 'Slack', username: 'prawin.nageswaran'
             }
         }
     }
