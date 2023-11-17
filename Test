@@ -1,0 +1,13 @@
+{
+  "type": "page",
+  "title": "Your Page Title",
+  "space": {
+    "key": "SPACEKEY"
+  },
+  "body": {
+    "storage": {
+      "value": "<h1 style='text-align: center;'>Test Results</h1>",
+      "representation": "storage"
+    }
+  }
+}
