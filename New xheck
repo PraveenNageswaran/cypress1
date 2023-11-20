@@ -1,0 +1,66 @@
+Question 
+in jsr223 sampler
+Hello AI
+Certainly! If you want to create a page in Confluence using the JSR223 Sampler in JMeter, you can use the following steps:
+
+1. Add a JSR223 Sampler: In your JMeter test plan, add a JSR223 Sampler to the thread group where you want to create the page.
+
+2. Choose the scripting language: In the JSR223 Sampler, select the scripting language as "groovy" since it is commonly used with JMeter.
+
+3. Import necessary libraries: Import the required libraries to make HTTP requests. In this case, you can use the `HTTPBuilder` library.
+
+4. Write the Groovy code: Inside the JSR223 Sampler, write the Groovy code to create the page using the Confluence REST API. Here's an example:
+
+```groovy
+import groovy.json.JsonOutput
+import groovyx.net.http.HTTPBuilder
+
+def username = 'pinky@dinky.com'
+def password = 'donkey'
+def proxyHost = 'http://usrgrp.net
+'
+def proxyPort = 8080
+def proxyUsername = 'pinky'
+def proxyPassword = 'password123$'
+
+def pageData = [
+    type: 'page',
+    title: 'My New Page',
+    space: [
+        key: 'SPACE_KEY'
+    ],
+    body: [
+        storage: [
+            value: '<p>This is the content of my new page.</p>',
+            representation: 'storage'
+        ]
+    ]
+]
+
+def confluenceUrl = 'https://your-confluence-instance/rest/api/content'
+
+def http = new HTTPBuilder(confluenceUrl)
+http.auth.basic(username, password)
+http.proxy.host = proxyHost
+http.proxy.port = proxyPort
+http.proxy.auth.basic(proxyUsername, proxyPassword)
+
+http.request(Method.POST, ContentType.JSON) {
+    uri.path = '/rest/api/content'
+    body = JsonOutput.toJson(pageData)
+
+    response.success = { resp, json ->
+        log.info("Page created successfully: ${json}")
+    }
+
+    response.failure = { resp, json ->
+        log.error("Error creating page: ${json}")
+    }
+}
+```
+
+Make sure to replace `'SPACE_KEY'` with the actual space key where you want to create the page. Additionally, ensure that you have the necessary dependencies, such as the `HTTPBuilder` library, in your JMeter installation.
+
+Feel free to customize the code according to your specific requirements. Let me know if you have any further questions! 😊
+
+Generated with Hello AI, Get it Now -> https://helloai.co
