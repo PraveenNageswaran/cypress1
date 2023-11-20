@@ -1,9 +1,10 @@
-Certainly! Here's a Script that you can use to create a Confluence page using the JSR223 Sampler in JMeter. This example uses the Groovy language:
+It looks like you are facing an issue with your network configuration when trying to access the Confluence API from behind a proxy. To resolve this issue, you can set up the HTTP client to work with the proxy. Here's an updated example in Groovy that includes proxy configuration:
 
 ```groovy
 import groovy.json.JsonOutput
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
+import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
@@ -13,63 +14,23 @@ import org.apache.http.util.EntityUtils
 // Set the Confluence API endpoint URL
 String confluenceApiUrl = "https://your-confluence-url/rest/api/content/"
 
-// Replace 'your-confluence-url' with the actual Confluence URL
+// Set the proxy host and port
+String proxyHost = "your-proxy-host"
+int proxyPort = 8080
 
-// Set the Confluence username and password
-String username = "pinky@dinky.com"
-String password = "donkey"
+// Create RequestConfig with proxy
+RequestConfig requestConfig = RequestConfig.custom()
+    .setProxy(new HttpHost(proxyHost, proxyPort))
+    .build()
 
-// Set the Confluence space key
-String spaceKey = "YOUR_SPACE_KEY" // Replace with the actual space key
+// Create an HTTP client with the proxy configuration
+CloseableHttpClient client = HttpClients.custom()
+    .setDefaultRequestConfig(requestConfig)
+    .build()
 
-// Set the page title and content
-String pageTitle = "Sample Page"
-String pageContent = "<p>This is a new page created by JMeter</p>"
+// Rest of the code remains the same as the previous example
+// ...
 
-// Create a JSON payload for creating the page
-String jsonData = JsonOutput.toJson([
-    type: "page",
-    title: pageTitle,
-    space: [key: spaceKey],
-    body: [storage: [value: pageContent, representation: "storage"]]
-])
-
-// Create an HTTP client
-CloseableHttpClient client = HttpClients.createDefault()
-
-try {
-    // Create an HTTP POST request to create a new page
-    HttpPost httpPost = new HttpPost(confluenceApiUrl)
-
-    // Set the Confluence username and password for basic authentication
-    String auth = "${username}:${password}"
-    byte[] encodedAuth = auth.bytes.encodeBase64()
-    httpPost.setHeader("Authorization", "Basic ${new String(encodedAuth)}")
-    httpPost.setHeader("Content-Type", "application/json")
-
-    // Set the JSON payload as the request body
-    httpPost.setEntity(new StringEntity(jsonData, "UTF-8"))
-
-    // Execute the request
-    HttpResponse response = client.execute(httpPost)
-
-    // Get the response entity
-    HttpEntity entity = response.getEntity
-    String responseString = EntityUtils.toString(entity, "UTF-8")
-
-    // Log the response
-    log.info("Response Code: ${response.statusLine.statusCode}")
-    log.info("Response Body: ${responseString}")
-} finally {
-    // Close the HTTP client
-    client.close()
-}
 ```
 
-In this script:
-- Replace "your-confluence-url" with the actual URL of your Confluence instance.
-- Set the `spaceKey` variable to the actual space key where you want to create the page.
-- Set the `pageTitle` and `pageContent` variables according to your requirements.
-- The script sends an HTTP POST request with the JSON payload to create a new page in Confluence.
-
-Please make sure to adapt the script according to your specific Confluence configurations and ensure that you have appropriate permissions to create pages in the Confluence space.
+Replace `your-proxy-host` and `8080` with your actual proxy host and port. This should allow the HTTP client to work with the proxy and resolve the "unknown host" exception you're encountering when trying to access the Confluence API.
