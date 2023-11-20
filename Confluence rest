@@ -30,3 +30,15 @@ json.each { data ->
     // Make the HTTP request to create a Confluence page
     def httpClient = org.apache.http.impl.client.HttpClients.createDefault()
     def request = new
+
+def request = new org.apache.http.client.methods.HttpPost("https://your-confluence-url/rest/api/content/")
+    request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+    request.setEntity(new StringEntity(payload))
+
+    // Execute the request
+    def response = httpClient.execute(request)
+    log.info("Created Confluence page with testName: ${testName}. Response code: ${response.getStatusLine().getStatusCode()}")
+
+    // Ensure to close the response to release resources
+    response.close()
+}
