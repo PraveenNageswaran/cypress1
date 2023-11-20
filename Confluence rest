@@ -1,0 +1,32 @@
+Here's an example script in Groovy:import groovy.json.JsonSlurper
+import org.apache.http.HttpHeaders
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.StringEntity
+
+// Read the JSON file
+def fileContent = new File('/path/to/your/json/file.json').text
+def json = new JsonSlurper().parseText(fileContent)
+
+// Iterate through each object in the JSON array
+json.each { data ->
+    def testName = data.testName
+    def status = data.status
+    def reason = data.reason
+
+    // Construct the JSON payload for Confluence page creation
+    def payload = '''
+    {
+        "type": "page",
+        "title": "${testName}",
+        "body": {
+            "storage": {
+                "value": "<h2>Status</h2><p>${status}</p><h2>Reason</h2><p>${reason}</p>",
+                "representation": "storage"
+            }
+        }
+    }
+    '''
+
+    // Make the HTTP request to create a Confluence page
+    def httpClient = org.apache.http.impl.client.HttpClients.createDefault()
+    def request = new
