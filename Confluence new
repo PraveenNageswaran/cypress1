@@ -1,4 +1,4 @@
-import org.apache.http.HttpResponse
+9import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
@@ -25,3 +25,31 @@ def requestBody = '''
     "space": {
         "key": "SPACEKEY"
     },
+
+
+def requestBody = '''
+{
+    "type": "page",
+    "title": "Your Page Title",
+    "space": {
+        "key": "SPACEKEY"
+    },
+    "body": {
+        "storage": {
+            "value": "<p>This is a new page</p>",
+            "representation": "storage"
+        }
+    }
+}
+'''
+
+def post = new HttpPost(confluenceUrl)
+post.setHeader("Content-Type", "application/json")
+post.setHeader("Accept", "application/json")
+post.setEntity(new StringEntity(requestBody))
+
+def creds = username + ":" + password
+def authHeaderValue = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(creds.getBytes())
+post.setHeader("Authorization", authHeaderValue)
+
+HttpResponse response = httpClient.execute(post)
