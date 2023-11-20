@@ -1,44 +1,66 @@
-Here's an example script in Groovy:import groovy.json.JsonSlurper
-import org.apache.http.HttpHeaders
+import org.apache.http.HttpHost
+import org.apache.http.HttpResponse
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.client.CredentialsProvider
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.conn.routing.HttpRoutePlanner
+import org.apache.http.impl.client.BasicCredentialsProvider
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
+import groovy.json.JsonBuilder
 
-// Read the JSON file
-def fileContent = new File('/path/to/your/json/file.json').text
-def json = new JsonSlurper().parseText(fileContent)
+def confluenceUrl = "https://your-instance.atlassian.net/wiki/rest/api/content/"
+def spaceKey = vars.get("YOUR_SPACE_KEY")
+def pageTitle = "Your Page Title"
+def token = vars.get("YOUR_CONFLUENCE_API_TOKEN")
 
-// Iterate through each object in the JSON array
-json.each { data ->
-    def testName = data.testName
-    def status = data.status
-    def reason = data.reason
+def proverb = "Your Proverb Value"
 
-    // Construct the JSON payload for Confluence page creation
-    def payload = '''
-    {
-        "type": "page",
-        "title": "${testName}",
-        "body": {
-            "storage": {
-                "value": "<h2>Status</h2><p>${status}</p><h2>Reason</h2><p>${reason}</p>",
-                "representation": "storage"
-            }
-        }
-    }
-    '''
+def proxyHost = "your-proxy-host"
+def proxyPort = 8080 // Replace with your proxy port number
 
-    // Make the HTTP request to create a Confluence page
-    def httpClient = org.apache.http.impl.client.HttpClients.createDefault()
-    def request = new
+def proxyUsername = "pinky"
+def proxyPassword = "system123$"
 
-def request = new org.apache.http.client.methods.HttpPost("https://your-confluence-url/rest/api/content/")
-    request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-    request.setEntity(new StringEntity(payload))
+def proxy = new HttpHost(proxyHost, proxyPort)
+def routePlanner = new DefaultProxyRoutePlanner(proxy)
+def httpClient = HttpClients.custom()
+    .setRoutePlanner(routePlanner)
+    .setDefaultCredentialsProvider(createCredentialsProvider(proxyHost, proxyPort, proxyUsername, proxyPassword))
+    .build()
 
-    // Execute the request
-    def response = httpClient.execute(request)
-    log.info("Created Confluence page with testName: ${testName}. Response code: ${response.getStatusLine().getStatusCode()}")
+def requestBody = new JsonBuilder()
+    .type("page")
+    .title(pageTitle)
+    .space([
+        key: spaceKey
+    ])
+    .body([
+        storage: [
+            value: "<h1 style='text-align: center;'>${proverb}</h1>",
+            representation: "storage"
+        ]
+    ])
+    .toString()
 
-    // Ensure to close the response to release resources
-    response.close()
+def httpPost = new HttpPost(confluenceUrl)
+httpPost.addHeader("Content-Type", "application/json")
+httpPost.addHeader("Authorization", "Bearer ${token}")
+
+httpPost.entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON)
+
+HttpResponse response = httpClient.execute(httpPost)
+
+log.info("Response Code: " + response.getStatusLine().getStatusCode())
+log.info("Response: " + response.getEntity().getContent().text)
+
+def createCredentialsProvider(proxyHost, proxyPort, username, password) {
+    def credentialsProvider = new BasicCredentialsProvider()
+    def creds = new UsernamePasswordCredentials(username, password)
+    def proxyAuthScope = new AuthScope(proxyHost, proxyPort)
+    credentialsProvider.setCredentials(proxyAuthScope, creds)
+    return credentialsProvider
 }
