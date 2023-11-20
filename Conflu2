@@ -1,0 +1,94 @@
+It looks like you're attempting to use a JSR223 Sampler in JMeter to create a Confluence page using the Confluence REST API. Here's an example script that you could use for this purpose:
+
+```groovy
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+
+// Set the Confluence credentials
+String username = "pinky@dinky.com";
+String password = "donkey";
+
+// Set the Confluence REST API endpoint
+String confluenceUrl = "https://your-confluence-domain.com/rest/api/content";
+
+// Set the page title and content
+String pageTitle = "Sample Page Title";
+String pageContent = "This is a sample page content";
+
+// Set the proxy details
+String proxyHost = "http://usrgrp.net";
+int proxyPort = 8080;
+String proxyUsername = "pinky";
+String proxyPassword = "password123$";
+
+try {
+    // Set up the proxy configuration
+    System.setProperty("http.proxyHost", proxyHost);
+    System.setProperty("http.proxyPort", String.valueOf(proxyPort));
+    System.setProperty("https.proxyHost", proxyHost);
+    System.setProperty("https.proxyPort", String.valueOf(proxyPort));
+    System.setProperty("http.proxyUser", proxyUsername);
+    System.setProperty("http.proxyPassword", proxyPassword);
+
+    // Create the Confluence page JSON payload
+    def pageData = [
+        "type": "page",
+        "title": pageTitle,
+        "space": [
+            "key": "YOUR-SPACE-KEY"
+        ],
+        "body": [
+            "storage": [
+                "value": pageContent,
+                "representation": "storage"
+            ]
+        ]
+    ]
+
+    // Create the HTTP client with authentication
+    CredentialsProvider credsProvider = new BasicCredentialsProvider();
+    credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+    CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
+
+    // Create the HTTP POST request
+    HttpPost postRequest = new HttpPost(confluenceUrl);
+    postRequest.setHeader("Content-Type", "application/json");
+    postRequest.setHeader("Accept", "application/json");
+
+    // Set the Confluence page JSON payload as the request entity
+    postRequest.setEntity(new StringEntity(new groovy.json.JsonBuilder(pageData).toString()));
+
+    // Execute the request
+    HttpResponse response = httpClient.execute(postRequest);
+
+    // Get the response status code
+    int statusCode = response.getStatusLine().getStatusCode();
+    log.info("Response status code: " + statusCode);
+
+    if (statusCode == 200) {
+        log.info("Confluence page created successfully");
+    } else {
+        log.error("Failed to create Confluence page. Status code: " + statusCode);
+    }
+
+    // Close the HTTP client
+    httpClient.close();
+} catch (Exception ex) {
+    log.error("Exception occurred: " + ex.getMessage());
+}
+```
+
+Please note that you will need to replace `"https://your-confluence-domain.com"` with the actual URL of your Confluence instance, and `"YOUR-SPACE-KEY"` with the key of the Confluence space where you want to create the page.
+
+Also, please ensure that you have the necessary permissions and credentials to create a page in the specified Confluence space.
+
+This script sets up a proxy configuration using the provided proxy details and then sends an HTTP POST request to the Confluence REST API to create a new page with the specified title and content.
+
+Let me know if you need further assistance!
