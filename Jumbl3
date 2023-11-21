@@ -1,4 +1,4 @@
-I see. It seems there might be another underlying issue. The error message you're encountering might not be directly related to the proxy port conversion. Let's simplify the script and ensure the proxy settings are correctly applied. Try this modified version:
+Absolutely, you can print out the sampler and proxy details to verify their settings. Here's how you can do that:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -51,7 +51,20 @@ sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPo
 sampler.setProxyUsername(proxyUsername)
 sampler.setProxyPassword(proxyPassword)
 
+// Printing sampler and proxy details
+log.info("Sampler details:")
+log.info("Domain: ${sampler.getDomain()}")
+log.info("Path: ${sampler.getPath()}")
+log.info("Method: ${sampler.getMethod()}")
+log.info("Headers: ${sampler.getHeaderManager().getHeaders()}")
+
+log.info("Proxy details:")
+log.info("Proxy Host: ${sampler.getPropertyAsString("HTTPSampler.proxyHost")}")
+log.info("Proxy Port: ${sampler.getPropertyAsString("HTTPSampler.proxyPort")}")
+log.info("Proxy Username: ${sampler.getProxyHost()}")
+log.info("Proxy Password: ${sampler.getProxyPassword()}")
+
 sampler.sample(null)
 ```
 
-This version uses `setProperty()` method to directly set the proxy host and port for the `HTTPSamplerProxy`. Ensure `proxyPort` is an integer, and it's passed as a string in `setProperty("HTTPSampler.proxyPort", proxyPort as String)`. Adjust as needed based on the actual format or type of `proxyPort`.
+This code will print out details about the sampler (HTTP request settings) and the proxy settings. Check the logs or console output to view these details and verify if they match the intended configurations. Adjust the logging statements or output format as needed for your environment.
