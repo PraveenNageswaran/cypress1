@@ -1,0 +1,31 @@
+Creating a pie chart directly in Confluence via JMeter scripting is challenging due to Confluence's REST API limitations in generating graphical elements like charts or diagrams. However, you can utilize third-party plugins within Confluence or external tools that generate charts to display data from JMeter.
+
+One approach is to use an external charting library or service that generates the pie chart based on the pass and fail counts obtained from JMeter. The pie chart can then be embedded or linked within Confluence.
+
+For instance, using a charting library like Chart.js or Google Charts API, you can construct a URL that represents a pie chart based on your pass and fail counts. Then, you can include this URL in your Confluence page to display the pie chart.
+
+Here's an example using Google Charts API to generate a simple pie chart:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.util.Base64Encoder
+
+// Example JSON data (Replace this with your actual JSON file parsing logic)
+def jsonData = '''[
+    {"testname": "Test 1", "status": "Pass", "message": "Test 1 passed successfully"},
+    {"testname": "Test 2", "status": "Fail", "message": "Test 2 failed due to assertion error"},
+    {"testname": "Test 3", "status": "Pass", "message": "Test 3 passed with warnings"}
+]'''
+
+def jsonObjects = new groovy.json.JsonSlurper().parseText(jsonData)
+
+def passCount = jsonObjects.count { it.status == 'Pass' }
+def failCount = jsonObjects.count { it.status == 'Fail' }
+
+def chartUrl = "https://chart.googleapis.com/chart?cht=p&chd=t:${passCount},${failCount}&chs=300x150&chl=Pass|Fail"
+log.info("Pie Chart URL: ${chartUrl}")
+```
+
+This code snippet generates a URL for a simple pie chart using Google Charts API based on the pass and fail counts. You can then use this URL in Confluence to display the pie chart by inserting it as an image or linking it to an external service that renders the chart. Adjust the chart URL parameters as needed to customize the chart appearance or data representation.
