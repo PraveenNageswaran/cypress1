@@ -1,6 +1,4 @@
-It seems there might be a misunderstanding with the usage of `AuthManager` and `MultipartUrlConfig` in JMeter. To authenticate using the HTTP Authorization Manager in JMeter, you can use HTTP Basic Authentication.
-
-Here's a revised script that utilizes HTTP Basic Authentication:
+I see. It seems there might be another underlying issue. The error message you're encountering might not be directly related to the proxy port conversion. Let's simplify the script and ensure the proxy settings are correctly applied. Try this modified version:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -12,7 +10,7 @@ def baseUrl = 'https://your-confluence-url' // Replace with your Confluence URL
 def username = 'pinky@dinky.com'
 def password = 'donkey'
 def proxyHost = 'usrgrp.net'
-def proxyPort = '8080'
+def proxyPort = 8080 // Make sure proxyPort is an integer
 def proxyUsername = 'pinky'
 def proxyPassword = 'password123$'
 
@@ -47,12 +45,13 @@ def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes())
 
 sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
 
-sampler.setProxyHost(proxyHost)
-sampler.setProxyPort(Integer.parseInt(proxyPort))
+sampler.setProperty("HTTPSampler.proxyHost", proxyHost)
+sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
+
 sampler.setProxyUsername(proxyUsername)
 sampler.setProxyPassword(proxyPassword)
 
 sampler.sample(null)
 ```
 
-Replace `'https://your-confluence-url'` with your Confluence instance URL and customize the page title and content in the `pageData` variable as needed. This script uses HTTP Basic Authentication by encoding the username and password and adding it to the request's `Authorization` header. Adjust the proxy settings and credentials accordingly.
+This version uses `setProperty()` method to directly set the proxy host and port for the `HTTPSamplerProxy`. Ensure `proxyPort` is an integer, and it's passed as a string in `setProperty("HTTPSampler.proxyPort", proxyPort as String)`. Adjust as needed based on the actual format or type of `proxyPort`.
