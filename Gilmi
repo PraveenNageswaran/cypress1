@@ -1,6 +1,4 @@
-Certainly! To create a table in Confluence REST API using the provided JSON data (`testname`, `status`, `message`), we'll modify the existing script to construct a table with three columns: `Test Name`, `Status`, and `Description`. Then, we'll populate the table rows with the corresponding values from your JSON data.
-
-Here's how you can update the script:
+Absolutely, you can integrate the creation of the Confluence table inside the `pageData` structure as before. Here's an updated version of the script that incorporates the table creation within the `pageData` JSON structure:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -35,11 +33,24 @@ jsonObjects.each { entry ->
 
 tableBody.append("{panel}")
 
+def pageData = [
+    "type": "page",
+    "title": "Test Results",
+    "body": [
+        "storage": [
+            "value": tableBody.toString(),
+            "representation": "storage"
+        ]
+    ]
+]
+
+def jsonBody = new groovy.json.JsonBuilder(pageData).toPrettyString()
+
 def sampler = new HTTPSamplerProxy()
 sampler.setDomain(baseUrl)
 sampler.setPath('/rest/api/content/')
 sampler.setMethod('POST')
-sampler.addNonEncodedArgument('', "{\"type\":\"page\",\"title\":\"Test Results\",\"body\":{\"storage\":{\"value\":\"${tableBody.toString()}\",\"representation\":\"storage\"}}}", '')
+sampler.addNonEncodedArgument('', jsonBody, '')
 sampler.setPostBodyRaw(true)
 sampler.setFollowRedirects(true)
 sampler.setUseKeepAlive(true)
@@ -62,4 +73,4 @@ sampler.setProxyPassword(proxyPassword)
 sampler.sample(null)
 ```
 
-This script constructs a Confluence table with the data from your JSON (`testname`, `status`, `message`) and sends it to Confluence using the REST API. Replace `jsonData` with your actual JSON parsing logic if it's coming from a file or another source. Adjust other variables like Confluence URL, credentials, and proxy settings as needed.
+This script constructs the table within the `pageData` JSON structure and sends it to Confluence using the REST API. Adjust variables like Confluence URL, credentials, and proxy settings according to your environment.
