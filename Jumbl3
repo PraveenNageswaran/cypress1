@@ -1,0 +1,55 @@
+Creating a Confluence page using the JSR223 Sampler in JMeter involves sending HTTP requests using its REST API. Here's an example of how you can do it:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.util.HTTPArgument
+import org.apache.jmeter.protocol.http.util.HTTPConstants
+
+def baseUrl = 'https://your-confluence-url' // Replace with your Confluence URL
+def username = 'pinky@dinky.com'
+def password = 'donkey'
+def proxyHost = 'usrgrp.net'
+def proxyPort = '8080'
+def proxyUsername = 'pinky'
+def proxyPassword = 'password123$'
+
+def pageData = [
+    "type": "page",
+    "title": "Your Page Title",
+    "body": [
+        "storage": [
+            "value": "<p>This is a new page</p>",
+            "representation": "storage"
+        ]
+    ]
+]
+
+def jsonBody = new groovy.json.JsonBuilder(pageData).toPrettyString()
+
+def sampler = new HTTPSamplerProxy()
+sampler.setDomain(baseUrl)
+sampler.setPath('/rest/api/content/')
+sampler.setMethod('POST')
+sampler.addNonEncodedArgument('', jsonBody, '')
+sampler.setPostBodyRaw(true)
+sampler.setFollowRedirects(true)
+sampler.setUseKeepAlive(true)
+
+def headerManager = new HeaderManager()
+headerManager.add(new Header(HTTPConstants.HEADER_CONTENT_TYPE, HTTPConstants.APPLICATION_JSON))
+sampler.setHeaderManager(headerManager)
+
+sampler.setUsername(username)
+sampler.setPassword(password)
+sampler.setProxyHost(proxyHost)
+sampler.setProxyPort(parseInt(proxyPort))
+sampler.setProxyUsername(proxyUsername)
+sampler.setProxyPassword(proxyPassword)
+
+sampler.sample(null)
+
+```
+
+Replace `'https://your-confluence-url'` with your Confluence instance URL and customize the page title and content in the `pageData` variable. Ensure you have the necessary JARs added to JMeter's lib folder to execute this script. Also, be cautious with storing sensitive information like passwords in scripts. This example demonstrates how to use the REST API but ensure proper security practices for handling credentials in your test environment.
