@@ -1,4 +1,4 @@
-Absolutely! To place the table inside a table cell (`td`), you can modify the table construction within the `pageData` structure to include it inside a `td` element. Here's an updated version of the script:
+I see, let's modify the script to correctly structure the Confluence table with individual `<td>` elements for each column header and its respective values. Here's an updated version:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -24,14 +24,14 @@ def proxyUsername = 'pinky'
 def proxyPassword = 'password123$'
 
 def tableBody = new StringBuilder()
-tableBody.append("<table><tr><td>{panel:title=Test Results}")
-tableBody.append("|Test Name|Status|Description|\n")
+tableBody.append("{panel:title=Test Results}\n")
+tableBody.append("<table><tr><td>Test Name</td><td>Status</td><td>Description</td></tr>\n")
 
 jsonObjects.each { entry ->
-    tableBody.append("|${entry.testname}|${entry.status}|${entry.message}|\n")
+    tableBody.append("<tr><td>${entry.testname}</td><td>${entry.status}</td><td>${entry.message}</td></tr>\n")
 }
 
-tableBody.append("{panel}</td></tr></table>")
+tableBody.append("</table>{panel}")
 
 def pageData = [
     "type": "page",
@@ -73,4 +73,4 @@ sampler.setProxyPassword(proxyPassword)
 sampler.sample(null)
 ```
 
-This script creates a table wrapped within a `td` element and sends it to Confluence using the REST API. Adjust the JSON data, Confluence URL, credentials, and proxy settings according to your specific requirements.
+This script constructs a proper Confluence table structure with `<table>`, `<tr>`, and `<td>` elements for each cell and sends it to Confluence using the REST API. Adjust variables like JSON data, Confluence URL, credentials, and proxy settings according to your specific environment.
