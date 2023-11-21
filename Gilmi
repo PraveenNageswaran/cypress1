@@ -1,0 +1,49 @@
+Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7.1')
+import groovy.json.JsonSlurper
+import groovyx.net.http.RESTClient
+
+def jsonFileContent = new File('path_to_your_json_file.json').text
+def jsonData = new JsonSlurper().parseText(jsonFileContent)
+
+def tableData = "|*Testname*|*Status*|*Description*|\n"
+
+jsonData.each { obj ->
+    def testName = obj.Testname ?: ''
+    def status = obj.status ?: ''
+    def description = obj.message ?: ''
+    
+    tableData += "|$testName|$status|$description|\n"
+}
+
+def confluenceUrl = 'https://your-confluence-url/rest/api/content'
+def username = 'your_username'
+def password = 'your_password'
+
+def restClient = new RESTClient(confluenceUrl)
+restClient.auth.basic(username, password)
+
+def pagePayload = [
+    type: 'page',
+    title: 'Your Page Title',
+    space: [
+        key: 'SPACEKEY' // Replace with your space key
+    ],
+    body: [
+        storage: [
+            value: tableData,
+            representation: 'wiki'
+        ]
+    ]
+]
+
+def response = restClient.post(
+    contentType: 'application/json',
+    body: pagePayload
+)
+
+if (response.status == 200) {
+    println("Page created successfully in Confluence!")
+} else {
+    println("Failed to create the page. Status code: ${response.status}")
+    println("Error message: ${response.data}")
+}
