@@ -1,13 +1,12 @@
-Apologies for the confusion earlier. The `HTTPSamplerProxy` class in JMeter doesn't have direct methods like `setUsername()` or `setPassword()` to set authentication credentials for Confluence. Instead, you need to use JMeter's HTTP Authorization Manager.
+It seems there might be a misunderstanding with the usage of `AuthManager` and `MultipartUrlConfig` in JMeter. To authenticate using the HTTP Authorization Manager in JMeter, you can use HTTP Basic Authentication.
 
-Here's an updated script that utilizes the HTTP Authorization Manager to handle authentication:
+Here's a revised script that utilizes HTTP Basic Authentication:
 
 ```groovy
-import org.apache.jmeter.protocol.http.control.AuthManager
 import org.apache.jmeter.protocol.http.control.Header
 import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
-import org.apache.jmeter.testelement.property.CollectionProperty
+import org.apache.jmeter.protocol.http.util.Base64Encoder
 
 def baseUrl = 'https://your-confluence-url' // Replace with your Confluence URL
 def username = 'pinky@dinky.com'
@@ -43,18 +42,10 @@ def headerManager = new HeaderManager()
 headerManager.add(new Header('Content-Type', 'application/json')) // Setting Content-Type
 sampler.setHeaderManager(headerManager)
 
-def authManager = new AuthManager()
-authManager.addAuth(
-    new org.apache.jmeter.protocol.http.control.AuthManager.MultipartUrlConfig(
-        baseUrl,
-        username,
-        password,
-        '',
-        ''
-    )
-)
+def credentials = "${username}:${password}"
+def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes()))
 
-sampler.setAuthManager(authManager)
+sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
 
 sampler.setProxyHost(proxyHost)
 sampler.setProxyPort(Integer.parseInt(proxyPort))
@@ -64,4 +55,4 @@ sampler.setProxyPassword(proxyPassword)
 sampler.sample(null)
 ```
 
-Replace `'https://your-confluence-url'` with your Confluence instance URL and customize the page title and content in the `pageData` variable as needed. This script uses the `AuthManager` to handle authentication. Adjust the proxy settings and credentials accordingly.
+Replace `'https://your-confluence-url'` with your Confluence instance URL and customize the page title and content in the `pageData` variable as needed. This script uses HTTP Basic Authentication by encoding the username and password and adding it to the request's `Authorization` header. Adjust the proxy settings and credentials accordingly.
