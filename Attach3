@@ -1,4 +1,6 @@
-It seems like there was a misunderstanding in the code. Apologies for the confusion earlier. To attach files using JMeter's HTTPSamplerProxy, a different approach is needed. Here's a revised script to handle file attachments to Confluence using the JMeter HTTPSamplerProxy:
+I apologize for the confusion earlier. It seems there's a misunderstanding regarding the usage of `setProperty()` method. To add multiple files as attachments using JMeter's HTTPSamplerProxy, the `setProperty()` method doesn't directly set a list of files. Instead, we can set each file as an argument separately.
+
+Here's an updated approach to handle multiple file attachments:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -6,7 +8,6 @@ import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.util.HTTPFileArg
 import org.apache.jmeter.protocol.http.util.Base64Encoder
-import org.apache.jmeter.config.Arguments
 
 // Example JSON data including Confluence base URL
 def jsonData = '''{
@@ -90,17 +91,14 @@ sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPo
 sampler.setProxyUsername(proxyUsername)
 sampler.setProxyPassword(proxyPassword)
 
-def multipartFiles = []
 attachments.each { file ->
-    def httpFileArg = new HTTPFileArg()
-    httpFileArg.setPath(file.getAbsolutePath())
-    httpFileArg.setMimeType("application/json")
-    multipartFiles.add(httpFileArg)
+    def fileArg = new HTTPFileArg()
+    fileArg.setPath(file.getAbsolutePath())
+    fileArg.setMimeType("application/json")
+    sampler.addTestElement(fileArg)
 }
-
-sampler.setProperty(new Arguments(), multipartFiles.toArray(new HTTPFileArg[0]))
 
 sampler.sample(null)
 ```
 
-This revised script gathers JSON files from the `C:/workspace` directory starting with "raw" and ending with `.json` and attaches them to the Confluence page creation request using JMeter's HTTPSamplerProxy. Adjust the directory path or file-naming pattern as needed.
+This adjusted script uses the `addTestElement()` method to add each file as an attachment to the HTTPSamplerProxy. It iterates through the list of files found in the `C:/workspace` directory and attaches them to the Confluence page creation request using JMeter's HTTPSamplerProxy. Adjust the directory path or file-naming pattern if needed.
