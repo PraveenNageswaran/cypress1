@@ -1,10 +1,11 @@
-Sure, to create attachments in Confluence using its REST API, you need to make another API call to upload the file and attach it to the Confluence page. Here's an example of how you can modify the previous script to include the attachment functionality:
+It seems there might be an issue with the file constructor. Let's modify the attachment upload function to resolve this problem:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
 import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.util.Base64Encoder
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
 
 // Example JSON data (Replace this with your actual JSON file parsing logic)
 def jsonData = '''[
@@ -34,11 +35,10 @@ def uploadAttachment(pageId, filename) {
     attachmentSampler.setFollowRedirects(true)
     attachmentSampler.setUseKeepAlive(true)
 
-    def file = new File(filename)
-    def fileStream = new FileInputStream(file)
-    def fileSize = file.length()
+    def file = new HTTPFileArg(filename, "application/octet-stream", "file") // Create HTTPFileArg object
 
-    attachmentSampler.addNonEncodedArgument("file", fileStream, "")
+    attachmentSampler.setHTTPFiles([file])
+
     attachmentSampler.setHeaderManager(headerManager)
     attachmentSampler.setHeader("X-Atlassian-Token", "no-check")
     attachmentSampler.setDoMultipartPost(true)
@@ -108,4 +108,4 @@ def attachmentFilename = "/path/to/your/attachment/file.txt" // Replace with the
 uploadAttachment(pageId, attachmentFilename) // Upload attachment to the page
 ```
 
-This script first creates the Confluence page with the test results table and then attempts to upload an attachment to that page. Replace `pageId` with the actual ID of the page where you want to attach the file, and `attachmentFilename` with the path to your file that you want to attach. Adjust other variables like Confluence URL, credentials, and proxy settings according to your environment.
+This script now uses `HTTPFileArg` to handle file attachments. Please replace `pageId` with the actual ID of the page where you want to attach the file and `attachmentFilename` with the path to the file you want to attach. Adjust other variables like Confluence URL, credentials, and proxy settings according to your environment.
