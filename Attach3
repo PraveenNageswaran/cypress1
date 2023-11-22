@@ -1,0 +1,106 @@
+It seems like there was a misunderstanding in the code. Apologies for the confusion earlier. To attach files using JMeter's HTTPSamplerProxy, a different approach is needed. Here's a revised script to handle file attachments to Confluence using the JMeter HTTPSamplerProxy:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
+import org.apache.jmeter.protocol.http.util.Base64Encoder
+import org.apache.jmeter.config.Arguments
+
+// Example JSON data including Confluence base URL
+def jsonData = '''{
+    "confluenceBaseUrl": "https://your-confluence-url",
+    "testResults": [
+        {"testname": "Test 1", "status": "Pass", "message": "Test 1 passed successfully"},
+        {"testname": "Test 2", "status": "Fail", "message": "Test 2 failed due to assertion error"},
+        {"testname": "Test 3", "status": "Pass", "message": "Test 3 passed with warnings"}
+    ]
+}'''
+
+def parsedData = new groovy.json.JsonSlurper().parseText(jsonData)
+
+def confluenceBaseUrl = parsedData.confluenceBaseUrl
+def testResults = parsedData.testResults
+
+def tableBody = new StringBuilder()
+tableBody.append("{panel:title=Test Results}\n")
+tableBody.append("|Test Name|Status|Description|\n")
+
+testResults.each { entry ->
+    tableBody.append("|${entry.testname}|${entry.status}|${entry.message}|\n")
+}
+
+tableBody.append("{panel}")
+
+def attachments = []
+// Find JSON files starting with 'raw' in C:/workspace directory
+def workspaceDir = new File('C:/workspace')
+def jsonFiles = workspaceDir.listFiles().findAll { it.isFile() && it.name.startsWith("raw") && it.name.endsWith(".json") }
+
+jsonFiles.each { file ->
+    attachments.add(file)
+}
+
+def pageData = [
+    "type": "page",
+    "title": "Test Results",
+    "body": [
+        "storage": [
+            "value": tableBody.toString(),
+            "representation": "storage"
+        ],
+        "metadata": [
+            "properties": [
+                [
+                    "key": "editor",
+                    "value": "v2"
+                ]
+            ]
+        ]
+    ]
+]
+
+def jsonBody = new groovy.json.JsonBuilder(pageData).toPrettyString()
+
+def sampler = new HTTPSamplerProxy()
+sampler.setDomain(confluenceBaseUrl)
+sampler.setPath('/rest/api/content/')
+sampler.setMethod('POST')
+
+def headerManager = new HeaderManager()
+headerManager.add(new Header('Content-Type', 'application/json')) // Setting Content-Type
+sampler.setHeaderManager(headerManager)
+
+def username = 'pinky@dinky.com'
+def password = 'donkey'
+def proxyHost = 'usrgrp.net'
+def proxyPort = 8080 // Make sure proxyPort is an integer
+def proxyUsername = 'pinky'
+def proxyPassword = 'password123$'
+
+def credentials = "${username}:${password}"
+def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes()))
+
+sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
+
+sampler.setProperty("HTTPSampler.proxyHost", proxyHost)
+sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
+
+sampler.setProxyUsername(proxyUsername)
+sampler.setProxyPassword(proxyPassword)
+
+def multipartFiles = []
+attachments.each { file ->
+    def httpFileArg = new HTTPFileArg()
+    httpFileArg.setPath(file.getAbsolutePath())
+    httpFileArg.setMimeType("application/json")
+    multipartFiles.add(httpFileArg)
+}
+
+sampler.setProperty(new Arguments(), multipartFiles.toArray(new HTTPFileArg[0]))
+
+sampler.sample(null)
+```
+
+This revised script gathers JSON files from the `C:/workspace` directory starting with "raw" and ending with `.json` and attaches them to the Confluence page creation request using JMeter's HTTPSamplerProxy. Adjust the directory path or file-naming pattern as needed.
