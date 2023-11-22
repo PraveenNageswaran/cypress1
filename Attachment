@@ -1,4 +1,4 @@
-Absolutely, you can modify the script to read the Confluence base URL from JSON data. Here's an updated version of the script that includes reading the Confluence base URL from JSON:
+If you have multiple attachments to add to the Confluence page, you can modify the attachment structure to handle multiple files. Here's an example of how you might structure the JSON data to include multiple attachments:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -6,21 +6,26 @@ import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.util.Base64Encoder
 
-// Example JSON data including Confluence base URL (Replace this with your actual JSON file parsing logic)
+// Example JSON data including Confluence base URL and multiple attachments
 def jsonData = '''{
     "confluenceBaseUrl": "https://your-confluence-url",
     "testResults": [
         {"testname": "Test 1", "status": "Pass", "message": "Test 1 passed successfully"},
         {"testname": "Test 2", "status": "Fail", "message": "Test 2 failed due to assertion error"},
         {"testname": "Test 3", "status": "Pass", "message": "Test 3 passed with warnings"}
+    ],
+    "attachments": [
+        {"comment": "Attachment 1", "file": "C:/workspace/file1.txt"},
+        {"comment": "Attachment 2", "file": "C:/workspace/file2.txt"},
+        {"comment": "Attachment 3", "file": "C:/workspace/file3.txt"}
     ]
 }'''
 
 def parsedData = new groovy.json.JsonSlurper().parseText(jsonData)
 
 def confluenceBaseUrl = parsedData.confluenceBaseUrl
-
 def testResults = parsedData.testResults
+def attachments = parsedData.attachments
 
 def tableBody = new StringBuilder()
 tableBody.append("{panel:title=Test Results}\n")
@@ -32,16 +37,15 @@ testResults.each { entry ->
 
 tableBody.append("{panel}")
 
-// Specify the file path
-def filePath = 'C:/workspace/file.txt'
-
-// Example attachment JSON structure
-def attachmentData = [
-    "comment": "Attachment for the page",
-    "file": filePath
-]
-
-def attachmentsJson = new groovy.json.JsonBuilder(attachmentData).toPrettyString()
+def attachmentsJson = attachments.collect { attachment ->
+    def filePath = attachment.file
+    def comment = attachment.comment
+    def fileData = [
+        "comment": comment,
+        "file": filePath
+    ]
+    new groovy.json.JsonBuilder(fileData).toPrettyString()
+}.join(',')
 
 def pageData = [
     "type": "page",
@@ -78,17 +82,4 @@ def proxyUsername = 'pinky'
 def proxyPassword = 'password123$'
 
 def credentials = "${username}:${password}"
-def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes()))
-
-sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
-
-sampler.setProperty("HTTPSampler.proxyHost", proxyHost)
-sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
-
-sampler.setProxyUsername(proxyUsername)
-sampler.setProxyPassword(proxyPassword)
-
-sampler.sample(null)
-```
-
-This script reads the Confluence base URL from the JSON data provided. Adjust the JSON parsing logic as needed to match your actual JSON structure and include the correct Confluence base URL.
+def encodedCredentials = new String
