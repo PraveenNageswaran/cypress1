@@ -1,0 +1,20 @@
+In JMeter's Beanshell or JSR223 scripts, there might not be a method like `getResponseDataAsString()` available directly. Instead, you might need to access the response data through the sample result. Here's how you can do it:
+
+```groovy
+import org.apache.jmeter.samplers.SampleResult
+
+// Assuming you've already executed the sampler and stored the result in 'sampleResult'
+
+// Access the response data from the SampleResult
+def responseData = sampleResult.getResponseDataAsString()
+
+// Parse the JSON response
+def jsonResponse = new groovy.json.JsonSlurper().parseText(responseData)
+
+// Access the 'id' field from the JSON response
+def id = jsonResponse.id
+
+log.info("The ID from the response is: $id")
+```
+
+Replace `sampleResult` with the appropriate variable that represents the result of your sampler in the Beanshell or JSR223 script. This script assumes the response is in JSON format and extracts the 'id' field from the parsed JSON structure. Adjust the access to 'id' field according to your specific response format.
