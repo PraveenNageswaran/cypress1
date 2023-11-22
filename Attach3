@@ -1,6 +1,4 @@
-Absolutely, you can call another REST API to handle attachments in Confluence. To add attachments to a Confluence page, you'll need to use the Confluence REST API endpoint for adding attachments to a specific page.
-
-Here's how you can modify the existing script to include the logic for adding attachments to a Confluence page:
+Sure, to create attachments in Confluence using its REST API, you need to make another API call to upload the file and attach it to the Confluence page. Here's an example of how you can modify the previous script to include the attachment functionality:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -25,9 +23,36 @@ def proxyPort = 8080 // Make sure proxyPort is an integer
 def proxyUsername = 'pinky'
 def proxyPassword = 'password123$'
 
+// Function to upload an attachment
+def uploadAttachment(pageId, filename) {
+    def attachmentUrl = "${baseUrl}/rest/api/content/${pageId}/child/attachment"
+
+    def attachmentSampler = new HTTPSamplerProxy()
+    attachmentSampler.setDomain(baseUrl)
+    attachmentSampler.setPath("/rest/api/content/${pageId}/child/attachment")
+    attachmentSampler.setMethod('POST')
+    attachmentSampler.setFollowRedirects(true)
+    attachmentSampler.setUseKeepAlive(true)
+
+    def file = new File(filename)
+    def fileStream = new FileInputStream(file)
+    def fileSize = file.length()
+
+    attachmentSampler.addNonEncodedArgument("file", fileStream, "")
+    attachmentSampler.setHeaderManager(headerManager)
+    attachmentSampler.setHeader("X-Atlassian-Token", "no-check")
+    attachmentSampler.setDoMultipartPost(true)
+
+    def attachmentResult = attachmentSampler.sample()
+
+    log.info("Attachment Response Code: ${attachmentResult.getResponseCode()}")
+    log.info("Attachment Response Data: ${attachmentResult.getResponseDataAsString()}")
+}
+
+// Creating the page as before
 def tableBody = new StringBuilder()
 tableBody.append("{panel:title=Test Results}\n")
-tableBody.append("||Test Name||Status||Description||\n")
+tableBody.append("|Test Name|Status|Description|\n")
 
 jsonObjects.each { entry ->
     tableBody.append("|${entry.testname}|${entry.status}|${entry.message}|\n")
@@ -48,62 +73,39 @@ def pageData = [
 
 def jsonBody = new groovy.json.JsonBuilder(pageData).toPrettyString()
 
-def createPageSampler = new HTTPSamplerProxy()
-createPageSampler.setDomain(baseUrl)
-createPageSampler.setPath('/rest/api/content/')
-createPageSampler.setMethod('POST')
-createPageSampler.addNonEncodedArgument('', jsonBody, '')
-createPageSampler.setPostBodyRaw(true)
-createPageSampler.setFollowRedirects(true)
-createPageSampler.setUseKeepAlive(true)
+def sampler = new HTTPSamplerProxy()
+sampler.setDomain(baseUrl)
+sampler.setPath('/rest/api/content/')
+sampler.setMethod('POST')
+sampler.addNonEncodedArgument('', jsonBody, '')
+sampler.setPostBodyRaw(true)
+sampler.setFollowRedirects(true)
+sampler.setUseKeepAlive(true)
 
-def createPageHeaderManager = new HeaderManager()
-createPageHeaderManager.add(new Header('Content-Type', 'application/json')) // Setting Content-Type
-createPageSampler.setHeaderManager(createPageHeaderManager)
+def headerManager = new HeaderManager()
+headerManager.add(new Header('Content-Type', 'application/json')) // Setting Content-Type
+sampler.setHeaderManager(headerManager)
 
 def credentials = "${username}:${password}"
 def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes()))
 
-createPageSampler.addArgument("Authorization", "Basic ${encodedCredentials}")
+sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
 
-createPageSampler.setProperty("HTTPSampler.proxyHost", proxyHost)
-createPageSampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
+sampler.setProperty("HTTPSampler.proxyHost", proxyHost)
+sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
 
-createPageSampler.setProxyUsername(proxyUsername)
-createPageSampler.setProxyPassword(proxyPassword)
+sampler.setProxyUsername(proxyUsername)
+sampler.setProxyPassword(proxyPassword)
 
-createPageSampler.setName("Create Page Sampler")
+def result = sampler.sample(null)
 
-createPageSampler.sample(null)
+log.info("Response: ${result.getResponseDataAsString()}") // Print the response data
 
-// Assuming you have the file paths for attachments
-def attachmentFilePaths = ['/path/to/attachment1.txt', '/path/to/attachment2.pdf']
+// Assuming pageId is obtained from the response (you'll need to extract it)
+def pageId = "123456789" // Replace with the actual page ID
+def attachmentFilename = "/path/to/your/attachment/file.txt" // Replace with the path to your attachment file
 
-attachmentFilePaths.each { attachmentPath ->
-    def attachmentSampler = new HTTPSamplerProxy()
-    attachmentSampler.setDomain(baseUrl)
-    attachmentSampler.setPath("/rest/api/content/${pageId}/child/attachment")
-    attachmentSampler.setMethod('POST')
-    attachmentSampler.setUseKeepAlive(true)
-
-    attachmentSampler.addHeader("X-Atlassian-Token", "nocheck")
-    attachmentSampler.setFileField("file", attachmentPath)
-    attachmentSampler.setFileField("comment", "Attachment comment") // Optional: Add a comment
-
-    attachmentSampler.setHeaderManager(createPageHeaderManager) // Reuse the same header manager
-
-    attachmentSampler.addArgument("Authorization", "Basic ${encodedCredentials}")
-
-    attachmentSampler.setProperty("HTTPSampler.proxyHost", proxyHost)
-    attachmentSampler.setProperty("HTTPSampler.proxyPort", proxyPort as String)
-
-    attachmentSampler.setProxyUsername(proxyUsername)
-    attachmentSampler.setProxyPassword(proxyPassword)
-
-    attachmentSampler.setName("Attachment Upload Sampler - ${attachmentPath}")
-    
-    attachmentSampler.sample(null)
-}
+uploadAttachment(pageId, attachmentFilename) // Upload attachment to the page
 ```
 
-This script first creates a Confluence page with the provided table content and then uploads attachments to that page using another REST API call. Adjust the attachment file paths, Confluence URL, credentials, proxy settings, and other parameters as needed.
+This script first creates the Confluence page with the test results table and then attempts to upload an attachment to that page. Replace `pageId` with the actual ID of the page where you want to attach the file, and `attachmentFilename` with the path to your file that you want to attach. Adjust other variables like Confluence URL, credentials, and proxy settings according to your environment.
