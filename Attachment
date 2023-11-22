@@ -1,4 +1,4 @@
-If you have multiple attachments to add to the Confluence page, you can modify the attachment structure to handle multiple files. Here's an example of how you might structure the JSON data to include multiple attachments:
+Certainly! To dynamically retrieve all JSON files starting with "raw" from the `C:/workspace` directory and attach them to the Confluence page, you can use Groovy's file handling capabilities to find the matching files. Here's an updated version of the script:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.Header
@@ -6,18 +6,13 @@ import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.util.Base64Encoder
 
-// Example JSON data including Confluence base URL and multiple attachments
+// Example JSON data including Confluence base URL
 def jsonData = '''{
     "confluenceBaseUrl": "https://your-confluence-url",
     "testResults": [
         {"testname": "Test 1", "status": "Pass", "message": "Test 1 passed successfully"},
         {"testname": "Test 2", "status": "Fail", "message": "Test 2 failed due to assertion error"},
         {"testname": "Test 3", "status": "Pass", "message": "Test 3 passed with warnings"}
-    ],
-    "attachments": [
-        {"comment": "Attachment 1", "file": "C:/workspace/file1.txt"},
-        {"comment": "Attachment 2", "file": "C:/workspace/file2.txt"},
-        {"comment": "Attachment 3", "file": "C:/workspace/file3.txt"}
     ]
 }'''
 
@@ -25,7 +20,6 @@ def parsedData = new groovy.json.JsonSlurper().parseText(jsonData)
 
 def confluenceBaseUrl = parsedData.confluenceBaseUrl
 def testResults = parsedData.testResults
-def attachments = parsedData.attachments
 
 def tableBody = new StringBuilder()
 tableBody.append("{panel:title=Test Results}\n")
@@ -36,6 +30,16 @@ testResults.each { entry ->
 }
 
 tableBody.append("{panel}")
+
+def attachments = []
+// Find JSON files starting with 'raw' in C:/workspace directory
+def workspaceDir = new File('C:/workspace')
+workspaceDir.eachFileMatch(~/^raw.*\.json$/) { file ->
+    attachments.add([
+        "comment": "Attachment - ${file.name}",
+        "file": file.absolutePath
+    ])
+}
 
 def attachmentsJson = attachments.collect { attachment ->
     def filePath = attachment.file
@@ -82,4 +86,17 @@ def proxyUsername = 'pinky'
 def proxyPassword = 'password123$'
 
 def credentials = "${username}:${password}"
-def encodedCredentials = new String
+def encodedCredentials = new String(Base64Encoder.encode(credentials.getBytes()))
+
+sampler.addArgument("Authorization", "Basic ${encodedCredentials}")
+
+sampler.setProperty("HTTPSampler.proxyHost", proxyHost)
+sampler.setProperty("HTTPSampler.proxyPort", proxyPort as String) // Set proxyPort as a string
+
+sampler.setProxyUsername(proxyUsername)
+sampler.setProxyPassword(proxyPassword)
+
+sampler.sample(null)
+```
+
+This script uses Groovy's file handling to iterate through the `C:/workspace` directory and find all files starting with "raw" and having a `.json` extension. It then constructs attachment details for each matching file and includes them in the Confluence page creation request. Adjust the directory path and file naming pattern as needed.
