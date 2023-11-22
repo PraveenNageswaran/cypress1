@@ -1,0 +1,67 @@
+Apologies for the confusion earlier. It seems there might be compatibility issues with `HTTPFileArg` in Groovy scripts within JMeter.
+
+Let's try a different approach using a different method for attaching files in JMeter Groovy script. Below is an alternative method using a different class, `org.apache.http.entity.mime.MultipartEntityBuilder`, to handle file attachments in the script:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.util.Base64Encoder
+import org.apache.http.HttpEntity
+import org.apache.http.HttpResponse
+import org.apache.http.client.HttpClient
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.apache.http.impl.client.HttpClients
+
+// Example JSON data (Replace this with your actual JSON file parsing logic)
+def jsonData = '''[
+    {"testname": "Test 1", "status": "Pass", "message": "Test 1 passed successfully"},
+    {"testname": "Test 2", "status": "Fail", "message": "Test 2 failed due to assertion error"},
+    {"testname": "Test 3", "status": "Pass", "message": "Test 3 passed with warnings"}
+]'''
+
+def jsonObjects = new groovy.json.JsonSlurper().parseText(jsonData)
+
+def baseUrl = 'https://your-confluence-url' // Replace with your Confluence URL
+def username = 'pinky@dinky.com'
+def password = 'donkey'
+def proxyHost = 'usrgrp.net'
+def proxyPort = 8080 // Make sure proxyPort is an integer
+def proxyUsername = 'pinky'
+def proxyPassword = 'password123$'
+
+// Function to upload an attachment
+def uploadAttachment(pageId, filename) {
+    def attachmentUrl = "${baseUrl}/rest/api/content/${pageId}/child/attachment"
+
+    def httpClient = HttpClients.createDefault()
+    def httpPost = new HttpPost(attachmentUrl)
+
+    def builder = MultipartEntityBuilder.create()
+    builder.addBinaryBody("file", new File(filename), ContentType.APPLICATION_OCTET_STREAM, filename)
+
+    def multipart = builder.build()
+    httpPost.setEntity(multipart)
+
+    def credentials = Base64Encoder.encodeToString("${username}:${password}".getBytes())
+    httpPost.addHeader("Authorization", "Basic ${credentials}")
+    httpPost.addHeader("X-Atlassian-Token", "no-check")
+
+    def attachmentResult = httpClient.execute(httpPost)
+    
+    log.info("Attachment Response Code: ${attachmentResult.getStatusLine().getStatusCode()}")
+    log.info("Attachment Response Data: ${attachmentResult.getEntity().getContent().text}")
+}
+
+// Rest of your script to create the Confluence page...
+
+// Assuming pageId is obtained from the response (you'll need to extract it)
+def pageId = "123456789" // Replace with the actual page ID
+def attachmentFilename = "/path/to/your/attachment/file.txt" // Replace with the path to your attachment file
+
+uploadAttachment(pageId, attachmentFilename) // Upload attachment to the page
+```
+
+Replace `pageId` with the actual ID of the page where you want to attach the file and `attachmentFilename` with the path to the file you want to attach. Adjust other variables like Confluence URL, credentials, and proxy settings according to your environment.
