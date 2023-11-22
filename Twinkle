@@ -1,0 +1,53 @@
+If you've used the `HTTPSamplerProxy` in a JSR223 Sampler in JMeter, you likely aimed to mimic an HTTP request to Confluence. To attach a JSON file via Confluence's REST API, here's an example of how you can use the `HTTPSamplerProxy` in a JSR223 Sampler to perform this action:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
+import org.apache.jmeter.samplers.SampleResult
+
+def confluenceUrl = "YOUR_CONFLUENCE_API_URL_HERE" // Replace with your Confluence API URL
+def username = "pinky@dinky.com"
+def password = "donkey"
+def proxyHost = "usrgrp.net"
+def proxyPort = "8080"
+def proxyUsername = "pinky"
+def proxyPassword = "password123$"
+def jsonFilePath = "path/to/your/json/file.json"
+
+def proxy = new org.apache.jmeter.protocol.http.proxy.ProxyControl()
+proxy.setPort(8080) // Set your proxy port
+
+def sampler = new HTTPSamplerProxy()
+sampler.setDomain(confluenceUrl)
+sampler.setPath("/rest/api/content/{contentId}/child/attachment") // Adjust the API endpoint accordingly
+sampler.setMethod("POST")
+
+def headerManager = new HeaderManager()
+headerManager.add(new Header("Content-Type", "multipart/form-data"))
+headerManager.add(new Header("X-Atlassian-Token", "nocheck"))
+
+def auth = "${username}:${password}"
+def encodedAuth = "Basic " + org.apache.commons.codec.binary.Base64.encodeBase64String(auth.bytes)
+headerManager.add(new Header("Authorization", encodedAuth))
+
+sampler.setHeaderManager(headerManager)
+
+def file = new HTTPFileArg()
+file.setPath(jsonFilePath)
+file.setMimeType("application/json")
+file.setParameterName("file")
+sampler.setFileField("file")
+sampler.setHTTPFiles([file])
+
+def result = sampler.sample(proxy)
+
+log.info("Response code: ${result.getResponseCode()}")
+log.info("Response message: ${result.getResponseMessage()}")
+log.info("Response data: ${result.getResponseDataAsString()}")
+```
+
+Replace `"YOUR_CONFLUENCE_API_URL_HERE"` with your actual Confluence API URL, and ensure you have the correct path to your JSON file specified in the `jsonFilePath` variable.
+
+This script sets up an HTTP request using `HTTPSamplerProxy` with necessary headers for authentication and file attachment. Adjust the API path as needed to match the Confluence endpoint for attaching files.
