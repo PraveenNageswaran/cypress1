@@ -1,11 +1,11 @@
-Absolutely! Here's a step-by-step guide to upload files starting with the name "messages_" using a JavaScript array within a JSR223 Sampler in JMeter:
+Absolutely! Here's a revised step-by-step guide to upload files starting with the name "messages_" using a Groovy array within a JSR223 Sampler in JMeter:
 
 1. **JSR223 Sampler**:
    - Add a JSR223 Sampler under the Thread Group in your JMeter test plan.
-   - Use JavaScript to create an array of filenames that start with "messages_". For example:
-     ```javascript
-     var fileArray = ["messages_file1.json", "messages_file2.json", "messages_file3.json"]; // Replace with your filenames
-     vars.put("fileArray", JSON.stringify(fileArray)); // Store the array in JMeter variable 'fileArray'
+   - Use Groovy to create an array of filenames that start with "messages_". For example:
+     ```groovy
+     def fileArray = ["messages_file1.json", "messages_file2.json", "messages_file3.json"] // Replace with your filenames
+     vars.put("fileArray", groovy.json.JsonOutput.toJson(fileArray)) // Store the array in JMeter variable 'fileArray'
      ```
 
 2. **Loop Controller**:
@@ -24,4 +24,4 @@ Absolutely! Here's a step-by-step guide to upload files starting with the name "
 5. **Run the Test**:
    - Execute the test to upload files based on the filenames stored in the `fileArray` array.
 
-This setup uses a JSR223 Sampler to create a JavaScript array of filenames and store it in a JMeter variable (`fileArray`). Then, within a Loop Controller, the HTTP Request sampler dynamically fetches filenames from this array for file uploads using Groovy JSON parsing. Adjust the filenames and any other configurations as per your specific scenario.
+This setup uses a JSR223 Sampler with Groovy to create a Groovy array of filenames and store it in a JMeter variable (`fileArray`). Then, within a Loop Controller, the HTTP Request sampler dynamically fetches filenames from this array for file uploads using Groovy JSON parsing. Adjust the filenames and any other configurations as per your specific scenario.
