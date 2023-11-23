@@ -1,13 +1,10 @@
-I see, there was an issue with using `getEncodedQueryString()` in the previous script. Let's adjust the file attachment method to resolve this:
+It appears there's an issue with the construction of the `File` object in Groovy. Let's adjust how the file content is read to avoid this problem:
 
 ```groovy
 import org.apache.jmeter.config.Arguments
 import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.samplers.SampleResult
-import org.apache.jmeter.protocol.http.util.HTTPFileArg
-import java.nio.file.Files
-import java.nio.file.Paths
 
 def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
 def username = "pinky@dinky.com"
@@ -22,7 +19,7 @@ def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
 def comment = "Attachment comment here" // Replace with your comment
 
 // Read file content as byte array
-def fileBytes = Files.readAllBytes(Paths.get(attachmentFilePath))
+def fileBytes = new File(attachmentFilePath).getBytes()
 
 // Create an HTTPSamplerProxy for the request
 def confluenceRequest = new HTTPSamplerProxy()
@@ -67,4 +64,4 @@ log.info("Response message: ${sampleResult.getResponseMessage()}")
 log.info("Response data: ${sampleResult.getResponseDataAsString()}")
 ```
 
-This updated script reads the file content as bytes and directly sets it as the request body using `setPostBodyRaw(true)` without the need for `HTTPFileArg`. Adjust the variables as needed for your Confluence API and file attachment details.
+This revised script reads the file content as bytes without explicitly constructing a `File` object, allowing direct reading of the file content for the attachment. Adjust the `attachmentFilePath` variable to point to your JSON file, and other variables as per your Confluence API configuration.
