@@ -1,68 +1,52 @@
-import org.apache.jmeter.protocol.http.control.AuthManager;
-import org.apache.jmeter.protocol.http.control.Authorization;
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
-import org.apache.jmeter.protocol.http.util.HTTPFileArg;
-import org.apache.jmeter.protocol.http.util.HTTPFileArgs;
-import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.jmeter.threads.JMeterContext;
-import org.apache.jmeter.threads.JMeterContextService;
-import org.apache.jorphan.io.TextFile;
+Certainly! Here's an example using `HTTPSamplerProxy` to upload multiple files starting with "messages" to a Confluence page as attachments within a JSR223 Sampler:
 
-String confluenceUrl = "https://your-confluence-url/rest/api/content/{id}/child/attachment";
-String pageId = "your-page-id";
-String attachmentFilePath = "path/to/your/attachment/file.txt";
+```groovy
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.samplers.SampleResult
 
-HTTPSamplerProxy httpSampler = new HTTPSamplerProxy();
-httpSampler.setDomain(confluenceUrl);
-httpSampler.setPath(confluenceUrl.replace("{id}", pageId));
-httpSampler.setMethod("POST");
+def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
+def username = "pinky@dinky.com"
+def password = "donkey"
+def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
+def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
+def comment = "Attachment comment here" // Replace with your comment
+def directoryPath = "/path/to/directory" // Replace with the directory path
 
-JMeterContext context = JMeterContextService.getContext();
-AuthManager authManager = context.getEngine().getAuthorizationManager();
+def files = new File(directoryPath).listFiles({ file -> file.isFile() && file.getName().startsWith("messages") })
 
-String username = "your-username";
-String password = "your-password";
+def httpClient = new HTTPClient()
 
-authManager.addAuth(myHTTPSampler, new Authorization(){
-    @Override
-    public String getURL() {
-        return httpSampler.getDomain();
-    }
+files.each { file ->
+    def sampler = new HTTPSamplerProxy()
+    sampler.setDomain(confluenceUrl)
+    sampler.setMethod("POST")
+    sampler.setPath("/rest/api/content/$pageId/child/attachment")
+    sampler.setFollowRedirects(true)
 
-    @Override
-    public String getURLContents(String url, String method, String user, String password){
-        return url;
-    }
+    def headerManager = new HeaderManager()
+    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Authorization", "Basic " + "${username}:${password}".bytes.encodeBase64()))
+    sampler.setHeaderManager(headerManager)
 
-    @Override
-    public boolean getUsePreemptive() {
-        return true;
-    }
+    def args = new org.apache.jmeter.config.Arguments()
+    args.addArgument("comment", comment)
+    args.addArgument("minorEdit", minorEdit.toString())
+    sampler.setArguments(args)
 
-    @Override
-    public void setPreemptive(boolean value) {
+    def fileBytes = new File(file.getAbsolutePath()).readBytes()
 
-    }
+    sampler.setPostBodyRaw(true)
+    sampler.addNonEncodedArgument("", new String(fileBytes), "")
 
-    @Override
-    public String getAuthHeaderForURL(String url, String method, String content, String user, String password) {
-        return null;
-    }
-});
+    def sampleResult = sampler.sample(null).getSampleResult()
+    log.info("File ${file.getName()} uploaded with response code: ${sampleResult.getResponseCode()}")
+}
 
-httpSampler.setArguments(new HTTPFileArgs(new HTTPFileArg(attachmentFilePath, "file", "application/octet-stream")));
-
-httpSampler.setProperty(TestElement.TEST_CLASS, HTTPSamplerProxy.class.getName());
-httpSampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
-httpSampler.setProperty(TestElement.NAME, "HTTP Request");
-httpSampler.setProperty(TestElement.ENABLED, true);
-httpSampler.setProperty(TestElement.TEST_CLASS, HTTPSamplerProxy.class.getName());
-httpSampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
-
-httpSampler.setPostBodyRaw(true);
-httpSampler.setDoMultipartPost(true);
-
-httpSampler.setImplementation("HttpClient4");
-
-httpSampler.execute();
+httpClient.close()
 ```
+
+This script iterates through files in the specified directory (starting with "messages"), creates an `HTTPSamplerProxy` for each file, and sends a POST request to upload the file as an attachment to the Confluence page.
+
+Remember to replace placeholders like `YOUR_CONFLUENCE_API_URL`, `YOUR_CONFLUENCE_PAGE_ID`, `username`, `password`, and `/path/to/directory` with your specific values.
+
+Adjust the request parameters, authentication, and handling based on your Confluence API's requirements.
