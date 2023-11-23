@@ -1,0 +1,27 @@
+Absolutely! Here's a step-by-step guide to upload files starting with the name "messages_" using a JavaScript array within a JSR223 Sampler in JMeter:
+
+1. **JSR223 Sampler**:
+   - Add a JSR223 Sampler under the Thread Group in your JMeter test plan.
+   - Use JavaScript to create an array of filenames that start with "messages_". For example:
+     ```javascript
+     var fileArray = ["messages_file1.json", "messages_file2.json", "messages_file3.json"]; // Replace with your filenames
+     vars.put("fileArray", JSON.stringify(fileArray)); // Store the array in JMeter variable 'fileArray'
+     ```
+
+2. **Loop Controller**:
+   - Add a Loop Controller under the Thread Group.
+
+3. **HTTP Request Configuration**:
+   - Inside the Loop Controller, add an HTTP Request sampler.
+     - Set the server details and the API endpoint for file uploads.
+     - In the "Files Upload" tab, configure it as follows:
+       - Parameter Name: `file` (or as specified by Confluence API).
+       - File Path: `${__groovy(new groovy.json.JsonSlurper().parseText(vars.get("fileArray"))[__jm__Thread Group__idx])}`
+
+4. **Headers, Authentication, and Testing**:
+   - Configure headers, authentication details, and any other necessary parameters as required by Confluence API.
+
+5. **Run the Test**:
+   - Execute the test to upload files based on the filenames stored in the `fileArray` array.
+
+This setup uses a JSR223 Sampler to create a JavaScript array of filenames and store it in a JMeter variable (`fileArray`). Then, within a Loop Controller, the HTTP Request sampler dynamically fetches filenames from this array for file uploads using Groovy JSON parsing. Adjust the filenames and any other configurations as per your specific scenario.
