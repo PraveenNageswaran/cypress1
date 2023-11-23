@@ -1,27 +1,63 @@
-Absolutely! Here's a revised step-by-step guide to upload files starting with the name "messages_" using a Groovy array within a JSR223 Sampler in JMeter:
+To upload files using JMeter, you can follow these steps:
 
-1. **JSR223 Sampler**:
-   - Add a JSR223 Sampler under the Thread Group in your JMeter test plan.
-   - Use Groovy to create an array of filenames that start with "messages_". For example:
-     ```groovy
-     def fileArray = ["messages_file1.json", "messages_file2.json", "messages_file3.json"] // Replace with your filenames
-     vars.put("fileArray", groovy.json.JsonOutput.toJson(fileArray)) // Store the array in JMeter variable 'fileArray'
-     ```
+### Using HTTP Request:
 
-2. **Loop Controller**:
-   - Add a Loop Controller under the Thread Group.
+1. **Add an HTTP Request Sampler**: Create an HTTP Request Sampler by right-clicking on your Thread Group -> Add -> Sampler -> HTTP Request.
+  
+2. **Configure the HTTP Request Sampler**:
+   - Set the server name or IP (Confluence instance URL).
+   - Set the HTTP method to `POST`.
+   - Define the path to the endpoint for uploading files, such as `/rest/api/content/{pageId}/child/attachment`.
 
-3. **HTTP Request Configuration**:
-   - Inside the Loop Controller, add an HTTP Request sampler.
-     - Set the server details and the API endpoint for file uploads.
-     - In the "Files Upload" tab, configure it as follows:
-       - Parameter Name: `file` (or as specified by Confluence API).
-       - File Path: `${__groovy(new groovy.json.JsonSlurper().parseText(vars.get("fileArray"))[__jm__Thread Group__idx])}`
+3. **HTTP Header Manager**:
+   - Add a Header Manager as a child of the HTTP Request Sampler.
+   - Set the necessary headers like `Authorization` for authentication and `Content-Type` (usually `multipart/form-data` for file uploads).
 
-4. **Headers, Authentication, and Testing**:
-   - Configure headers, authentication details, and any other necessary parameters as required by Confluence API.
+4. **File Upload Data**:
+   - Use a suitable Post Body element to include the file content.
+   - For file uploads, you'd typically use a "File Upload" or "Raw Body" element to specify the file path or contents.
 
-5. **Run the Test**:
-   - Execute the test to upload files based on the filenames stored in the `fileArray` array.
+5. **Loop Controller (Optional)**:
+   - If uploading multiple files, enclose the HTTP Request Sampler within a Loop Controller.
 
-This setup uses a JSR223 Sampler with Groovy to create a Groovy array of filenames and store it in a JMeter variable (`fileArray`). Then, within a Loop Controller, the HTTP Request sampler dynamically fetches filenames from this array for file uploads using Groovy JSON parsing. Adjust the filenames and any other configurations as per your specific scenario.
+6. **Error Handling and Verification**:
+   - Add listeners such as View Results Tree to check the responses for successful uploads or to identify errors.
+
+### Using Beanshell or JSR223 Sampler:
+
+You can use scripting to handle file uploads, reading file content, and constructing the request body dynamically.
+
+Here's a basic example using Beanshell:
+
+```java
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
+import org.apache.jmeter.protocol.http.control.HeaderManager;
+import org.apache.jmeter.protocol.http.control.Header;
+
+// Create an HTTP Sampler
+HTTPSamplerProxy sampler = new HTTPSamplerProxy();
+sampler.setDomain("your-confluence-url");
+sampler.setPort(443);
+sampler.setPath("/rest/api/content/{pageId}/child/attachment");
+sampler.setMethod("POST");
+
+// Set Headers
+HeaderManager headerManager = new HeaderManager();
+headerManager.add(new Header("Authorization", "Your_Auth_Token"));
+headerManager.add(new Header("Content-Type", "multipart/form-data"));
+sampler.setHeaderManager(headerManager);
+
+// Set File Content
+File file = new File("/path/to/your/file");
+String fileContent = FileUtils.readFileToString(file, "UTF-8");
+sampler.addNonEncodedArgument("", fileContent, "");
+
+// Execute Sampler
+sampler.sample(null);
+```
+
+Replace placeholders like `{pageId}`, file paths, authentication tokens, and Confluence details with your actual information.
+
+Do note, depending on Confluence's API requirements, you might need to adjust the request headers and body structure accordingly.
+
+Would you like more details on a specific part or further clarification?
