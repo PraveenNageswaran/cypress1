@@ -1,4 +1,4 @@
-My apologies for the oversight. To include the file while also adding the `minoredit` and `comment` parameters, we'll need to adjust the request setup accordingly:
+I see, there seems to be an issue with how the file attachment is set. Let's adjust that to resolve the error:
 
 ```groovy
 import org.apache.jmeter.config.Arguments
@@ -53,7 +53,8 @@ fileArg.setPath(attachmentFilePath)
 fileArg.setMimeType("application/json")
 fileArg.setParamName("file")
 
-confluenceRequest.setHTTPFiles([fileArg]) // Set file as HTTPFileArg in an array
+confluenceRequest.setPostBodyRaw(true)
+confluenceRequest.addNonEncodedArgument('', fileArg.getEncodedQueryString(), '')
 
 // Execute the request and retrieve the result
 def sampleResult = confluenceRequest.sample(null).getSampleResult()
@@ -63,4 +64,4 @@ log.info("Response message: ${sampleResult.getResponseMessage()}")
 log.info("Response data: ${sampleResult.getResponseDataAsString()}")
 ```
 
-This adjusted script configures the `HTTPSamplerProxy` with authentication, proxy settings, and includes the `minoredit`, `comment`, and attaches the specified JSON file using `HTTPFileArg`. Adjust the variables as needed to suit your Confluence instance and the file attachment details.
+This script now uses `setPostBodyRaw(true)` to handle the file attachment directly within the request body using `HTTPFileArg`. Adjust the variables according to your Confluence API and file attachment details.
