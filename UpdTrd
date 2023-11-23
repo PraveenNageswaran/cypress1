@@ -1,4 +1,4 @@
-I see, there seems to be an issue with how the file attachment is set. Let's adjust that to resolve the error:
+I see, there was an issue with using `getEncodedQueryString()` in the previous script. Let's adjust the file attachment method to resolve this:
 
 ```groovy
 import org.apache.jmeter.config.Arguments
@@ -6,6 +6,8 @@ import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.samplers.SampleResult
 import org.apache.jmeter.protocol.http.util.HTTPFileArg
+import java.nio.file.Files
+import java.nio.file.Paths
 
 def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
 def username = "pinky@dinky.com"
@@ -18,6 +20,9 @@ def attachmentFilePath = "path/to/your/json/file.json" // Replace with the actua
 def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
 def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
 def comment = "Attachment comment here" // Replace with your comment
+
+// Read file content as byte array
+def fileBytes = Files.readAllBytes(Paths.get(attachmentFilePath))
 
 // Create an HTTPSamplerProxy for the request
 def confluenceRequest = new HTTPSamplerProxy()
@@ -47,14 +52,12 @@ args.addArgument("minorEdit", minorEdit.toString()) // Add minorEdit parameter
 args.addArgument("comment", comment) // Add comment parameter
 confluenceRequest.setArguments(args)
 
-// Add file for upload
-def fileArg = new HTTPFileArg()
-fileArg.setPath(attachmentFilePath)
-fileArg.setMimeType("application/json")
-fileArg.setParamName("file")
-
+// Set file as request body
 confluenceRequest.setPostBodyRaw(true)
-confluenceRequest.addNonEncodedArgument('', fileArg.getEncodedQueryString(), '')
+confluenceRequest.addNonEncodedArgument("", new String(fileBytes), "")
+
+// Set request content type
+confluenceRequest.setHeader("Content-Type", "application/json")
 
 // Execute the request and retrieve the result
 def sampleResult = confluenceRequest.sample(null).getSampleResult()
@@ -64,4 +67,4 @@ log.info("Response message: ${sampleResult.getResponseMessage()}")
 log.info("Response data: ${sampleResult.getResponseDataAsString()}")
 ```
 
-This script now uses `setPostBodyRaw(true)` to handle the file attachment directly within the request body using `HTTPFileArg`. Adjust the variables according to your Confluence API and file attachment details.
+This updated script reads the file content as bytes and directly sets it as the request body using `setPostBodyRaw(true)` without the need for `HTTPFileArg`. Adjust the variables as needed for your Confluence API and file attachment details.
