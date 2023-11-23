@@ -1,6 +1,6 @@
-The error message "500 Internal Server Error - FileUploadException: MissingMultipartBoundaryException: Missing multipart boundary in Content-Type" typically occurs when the server expects a multipart request with defined boundaries for each part but doesn't find them in the request.
+The error you're encountering with "illegal hex characters in escape (%) pattern for input string" typically arises when there's an issue with encoding or special characters in the script. It seems the script might not be handling special characters within the file content correctly.
 
-To address this, let's adjust the script to construct a proper multipart request with the necessary boundary:
+Let's refine the script by encoding the file content properly before constructing the multipart request to avoid any character encoding issues:
 
 ```groovy
 import org.apache.jmeter.protocol.http.control.HeaderManager
@@ -10,7 +10,7 @@ import org.apache.jmeter.samplers.SampleResult
 def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
 def username = "pinky@dinky.com"
 def password = "donkey"
-def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
+def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with your Confluence page ID
 def directoryPath = "/path/to/directory" // Replace with the directory path
 
 def files = new File(directoryPath).listFiles({ file -> file.isFile() && file.getName().startsWith("messages") })
@@ -27,17 +27,19 @@ files.each { file ->
     def headerManager = new HeaderManager()
     headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Authorization", "Basic " + "${username}:${password}".bytes.encodeBase64()))
     headerManager.add(new org.apache.jmeter.protocol.http.control.Header("X-Atlassian-Token", "no-check")) // Set Atlassian token
-    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Content-Type", "multipart/form-data; boundary=--JMeterBoundary")) // Set Content-Type with boundary
+    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Content-Type", "multipart/form-data; boundary=--JMeterBoundary")) // Set Content-Type
     sampler.setHeaderManager(headerManager)
 
     def fileBytes = new File(file.getAbsolutePath()).readBytes()
+
+    def encodedFileContent = new String(fileBytes).encodeAsBase64().toString() // Encode file content to Base64
 
     def requestBody = """
     --JMeterBoundary
     Content-Disposition: form-data; name="file"; filename="${file.getName()}"
     Content-Type: application/octet-stream
     
-    ${new String(fileBytes)}
+    ${encodedFileContent}
     --JMeterBoundary--
     """
 
@@ -53,6 +55,4 @@ files.each { file ->
 httpClient.close()
 ```
 
-This script constructs a proper multipart request by setting the `Content-Type` header with a defined boundary and formatting the request body accordingly.
-
-Adjust the placeholders like `YOUR_CONFLUENCE_API_URL`, `YOUR_CONFLUENCE_PAGE_ID`, `username`, `password`, and `/path/to/directory` with your specific values.
+This updated script encodes the file content to Base64 before embedding it in the multipart request body to avoid potential character encoding issues. Adjust the placeholders like `YOUR_CONFLUENCE_API_URL`, `YOUR_CONFLUENCE_PAGE_ID`, `username`, `password`, and `/path/to/directory` with your specific values.
