@@ -1,56 +1,43 @@
-It seems the issue persists despite multiple attempts to read the file content. JMeter might have limitations in handling file operations within certain contexts.
+It looks like you are trying to perform a specific technical task involving the Confluence REST API and a JSR223 sampler. This is a complex and detailed topic that may require a deep technical understanding.
 
-Let's try an alternate approach where we'll use Groovy's `ClassLoader` to read the file content as a workaround:
+To achieve this task, you can use the following steps as a general guide:
+
+Step 1: Sending a request to Confluence using HTTP Request Sampler
+You can use the HTTP Request sampler to send a request to the Confluence REST API endpoint. Make sure to set the appropriate method (e.g., POST) and include the necessary headers (e.g., Content-Type, Authorization).
+
+Step 2: Attach a JSON file using JSR223 Sampler
+To attach a JSON file, you can use the JSR223 Sampler with a scripting language such as Groovy or JavaScript. Within the script, you will need to perform the following tasks:
+- Read the JSON file from your local filesystem
+- Encode the content of the JSON file
+- Include the encoded content in the request to Confluence
+
+
+Here's an example of how you might approach this task using Groovy in a JSR223 Sampler:
 
 ```groovy
-import org.apache.jmeter.config.Arguments
-import org.apache.jmeter.protocol.http.control.HeaderManager
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
-import org.apache.jmeter.samplers.SampleResult
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jorphan.util.JOrphanUtils
 
-def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
-def username = "pinky@dinky.com"
-def password = "donkey"
-def proxyHost = "usrgrp.net"
-def proxyPort = 8080
-def proxyUsername = "pinky"
-def proxyPassword = "password123$"
-def attachmentFilePath = "path/to/your/json/file.json" // Replace with the actual path to your JSON file
-def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
-def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
-def comment = "Attachment comment here" // Replace with your comment
+// Read the JSON file
+def filePath = '/path/to/your/json/file.json'
+def jsonContent = new File(filePath).text
 
-// Read file content as a string using ClassLoader
-def fileContent = new File(attachmentFilePath).withInputStream { stream ->
-    new String(stream.bytes, "UTF-8")
-}
+// Encode the JSON content
+def encodedContent = JOrphanUtils.baToHexString(jsonContent.bytes)
 
-// Create an HTTPSamplerProxy for the request
-def confluenceRequest = new HTTPSamplerProxy()
-confluenceRequest.setDomain(confluenceUrl)
-confluenceRequest.setMethod("POST")
-confluenceRequest.setPath("/rest/api/content/$pageId/child/attachment")
-confluenceRequest.setFollowRedirects(true)
+// Set the request parameters
+sampler.addNonEncodedArgument("file", encodedContent, "")
+sampler.setPostBodyRaw(true)
 
-// Set authentication details
-def credentials = "${username}:${password}"
-def encodedCredentials = 'Basic ' + credentials.bytes.encodeBase64().toString()
-confluenceRequest.setHeader(new HeaderManager())
-confluenceRequest.getHeaderManager().add(new Header("Authorization", encodedCredentials))
+// Add the necessary headers
+sampler.getHeaderManager().add(new Header("Content-Type", "application/json"))
 
-// Set proxy details
-confluenceRequest.setProperty("HTTPSampler.proxyHost", proxyHost)
-confluenceRequest.setProperty("HTTPSampler.proxyPort", proxyPort.toString())
-confluenceRequest.setProperty("HTTPSampler.proxyUser", proxyUsername)
-confluenceRequest.setProperty("HTTPSampler.proxyPass", proxyPassword)
+// Make the request to Confluence
+sampler.sample(null)
+```
 
-// Create arguments for the request
-def args = new Arguments()
-args.addArgument("os_username", username)
-args.addArgument("os_password", password)
-args.addArgument("atl_token", "no-check")
-args.addArgument("minorEdit", minorEdit.toString()) // Add minorEdit parameter
-args.addArgument("comment", comment) // Add comment parameter
-confluenceRequest.setArguments(args)
+In this example, you would replace "/path/to/your/json/file.json" with the actual path to your JSON file.
 
-// Set
+Please note that the specific implementation details may vary based on your JMeter setup and the exact requirements of your Confluence integration. Additionally, the handling of sensitive information such as usernames and passwords should be done with care, ensuring that proper security measures are in place.
+
+If you need further assistance with the technical details of your task, please feel free to provide more specific information, and I'd be happy to help further.
