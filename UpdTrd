@@ -1,43 +1,68 @@
-It looks like you are trying to perform a specific technical task involving the Confluence REST API and a JSR223 sampler. This is a complex and detailed topic that may require a deep technical understanding.
+import org.apache.jmeter.protocol.http.control.AuthManager;
+import org.apache.jmeter.protocol.http.control.Authorization;
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
+import org.apache.jmeter.protocol.http.util.HTTPFileArg;
+import org.apache.jmeter.protocol.http.util.HTTPFileArgs;
+import org.apache.jorphan.util.JOrphanUtils;
+import org.apache.jmeter.threads.JMeterContext;
+import org.apache.jmeter.threads.JMeterContextService;
+import org.apache.jorphan.io.TextFile;
 
-To achieve this task, you can use the following steps as a general guide:
+String confluenceUrl = "https://your-confluence-url/rest/api/content/{id}/child/attachment";
+String pageId = "your-page-id";
+String attachmentFilePath = "path/to/your/attachment/file.txt";
 
-Step 1: Sending a request to Confluence using HTTP Request Sampler
-You can use the HTTP Request sampler to send a request to the Confluence REST API endpoint. Make sure to set the appropriate method (e.g., POST) and include the necessary headers (e.g., Content-Type, Authorization).
+HTTPSamplerProxy httpSampler = new HTTPSamplerProxy();
+httpSampler.setDomain(confluenceUrl);
+httpSampler.setPath(confluenceUrl.replace("{id}", pageId));
+httpSampler.setMethod("POST");
 
-Step 2: Attach a JSON file using JSR223 Sampler
-To attach a JSON file, you can use the JSR223 Sampler with a scripting language such as Groovy or JavaScript. Within the script, you will need to perform the following tasks:
-- Read the JSON file from your local filesystem
-- Encode the content of the JSON file
-- Include the encoded content in the request to Confluence
+JMeterContext context = JMeterContextService.getContext();
+AuthManager authManager = context.getEngine().getAuthorizationManager();
 
+String username = "your-username";
+String password = "your-password";
 
-Here's an example of how you might approach this task using Groovy in a JSR223 Sampler:
+authManager.addAuth(myHTTPSampler, new Authorization(){
+    @Override
+    public String getURL() {
+        return httpSampler.getDomain();
+    }
 
-```groovy
-import org.apache.jmeter.protocol.http.control.Header
-import org.apache.jorphan.util.JOrphanUtils
+    @Override
+    public String getURLContents(String url, String method, String user, String password){
+        return url;
+    }
 
-// Read the JSON file
-def filePath = '/path/to/your/json/file.json'
-def jsonContent = new File(filePath).text
+    @Override
+    public boolean getUsePreemptive() {
+        return true;
+    }
 
-// Encode the JSON content
-def encodedContent = JOrphanUtils.baToHexString(jsonContent.bytes)
+    @Override
+    public void setPreemptive(boolean value) {
 
-// Set the request parameters
-sampler.addNonEncodedArgument("file", encodedContent, "")
-sampler.setPostBodyRaw(true)
+    }
 
-// Add the necessary headers
-sampler.getHeaderManager().add(new Header("Content-Type", "application/json"))
+    @Override
+    public String getAuthHeaderForURL(String url, String method, String content, String user, String password) {
+        return null;
+    }
+});
 
-// Make the request to Confluence
-sampler.sample(null)
+httpSampler.setArguments(new HTTPFileArgs(new HTTPFileArg(attachmentFilePath, "file", "application/octet-stream")));
+
+httpSampler.setProperty(TestElement.TEST_CLASS, HTTPSamplerProxy.class.getName());
+httpSampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
+httpSampler.setProperty(TestElement.NAME, "HTTP Request");
+httpSampler.setProperty(TestElement.ENABLED, true);
+httpSampler.setProperty(TestElement.TEST_CLASS, HTTPSamplerProxy.class.getName());
+httpSampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
+
+httpSampler.setPostBodyRaw(true);
+httpSampler.setDoMultipartPost(true);
+
+httpSampler.setImplementation("HttpClient4");
+
+httpSampler.execute();
 ```
-
-In this example, you would replace "/path/to/your/json/file.json" with the actual path to your JSON file.
-
-Please note that the specific implementation details may vary based on your JMeter setup and the exact requirements of your Confluence integration. Additionally, the handling of sensitive information such as usernames and passwords should be done with care, ensuring that proper security measures are in place.
-
-If you need further assistance with the technical details of your task, please feel free to provide more specific information, and I'd be happy to help further.
