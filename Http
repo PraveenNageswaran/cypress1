@@ -1,63 +1,58 @@
-To upload files using JMeter, you can follow these steps:
+The error message "500 Internal Server Error - FileUploadException: MissingMultipartBoundaryException: Missing multipart boundary in Content-Type" typically occurs when the server expects a multipart request with defined boundaries for each part but doesn't find them in the request.
 
-### Using HTTP Request:
+To address this, let's adjust the script to construct a proper multipart request with the necessary boundary:
 
-1. **Add an HTTP Request Sampler**: Create an HTTP Request Sampler by right-clicking on your Thread Group -> Add -> Sampler -> HTTP Request.
-  
-2. **Configure the HTTP Request Sampler**:
-   - Set the server name or IP (Confluence instance URL).
-   - Set the HTTP method to `POST`.
-   - Define the path to the endpoint for uploading files, such as `/rest/api/content/{pageId}/child/attachment`.
+```groovy
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.samplers.SampleResult
 
-3. **HTTP Header Manager**:
-   - Add a Header Manager as a child of the HTTP Request Sampler.
-   - Set the necessary headers like `Authorization` for authentication and `Content-Type` (usually `multipart/form-data` for file uploads).
+def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
+def username = "pinky@dinky.com"
+def password = "donkey"
+def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
+def directoryPath = "/path/to/directory" // Replace with the directory path
 
-4. **File Upload Data**:
-   - Use a suitable Post Body element to include the file content.
-   - For file uploads, you'd typically use a "File Upload" or "Raw Body" element to specify the file path or contents.
+def files = new File(directoryPath).listFiles({ file -> file.isFile() && file.getName().startsWith("messages") })
 
-5. **Loop Controller (Optional)**:
-   - If uploading multiple files, enclose the HTTP Request Sampler within a Loop Controller.
+def httpClient = new HTTPClient()
 
-6. **Error Handling and Verification**:
-   - Add listeners such as View Results Tree to check the responses for successful uploads or to identify errors.
+files.each { file ->
+    def sampler = new HTTPSamplerProxy()
+    sampler.setDomain(confluenceUrl)
+    sampler.setMethod("POST")
+    sampler.setPath("/rest/api/content/$pageId/child/attachment")
+    sampler.setFollowRedirects(true)
 
-### Using Beanshell or JSR223 Sampler:
+    def headerManager = new HeaderManager()
+    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Authorization", "Basic " + "${username}:${password}".bytes.encodeBase64()))
+    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("X-Atlassian-Token", "no-check")) // Set Atlassian token
+    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Content-Type", "multipart/form-data; boundary=--JMeterBoundary")) // Set Content-Type with boundary
+    sampler.setHeaderManager(headerManager)
 
-You can use scripting to handle file uploads, reading file content, and constructing the request body dynamically.
+    def fileBytes = new File(file.getAbsolutePath()).readBytes()
 
-Here's a basic example using Beanshell:
+    def requestBody = """
+    --JMeterBoundary
+    Content-Disposition: form-data; name="file"; filename="${file.getName()}"
+    Content-Type: application/octet-stream
+    
+    ${new String(fileBytes)}
+    --JMeterBoundary--
+    """
 
-```java
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
-import org.apache.jmeter.protocol.http.control.HeaderManager;
-import org.apache.jmeter.protocol.http.control.Header;
+    sampler.setUseKeepAlive(true)
+    sampler.setPostBodyRaw(true)
+    sampler.setArguments(new org.apache.jmeter.config.Arguments()) // Clear existing arguments
+    sampler.addNonEncodedArgument("", requestBody, "") // Attach the multipart body directly
 
-// Create an HTTP Sampler
-HTTPSamplerProxy sampler = new HTTPSamplerProxy();
-sampler.setDomain("your-confluence-url");
-sampler.setPort(443);
-sampler.setPath("/rest/api/content/{pageId}/child/attachment");
-sampler.setMethod("POST");
+    def sampleResult = sampler.sample(null).getSampleResult()
+    log.info("File ${file.getName()} uploaded with response code: ${sampleResult.getResponseCode()}")
+}
 
-// Set Headers
-HeaderManager headerManager = new HeaderManager();
-headerManager.add(new Header("Authorization", "Your_Auth_Token"));
-headerManager.add(new Header("Content-Type", "multipart/form-data"));
-sampler.setHeaderManager(headerManager);
-
-// Set File Content
-File file = new File("/path/to/your/file");
-String fileContent = FileUtils.readFileToString(file, "UTF-8");
-sampler.addNonEncodedArgument("", fileContent, "");
-
-// Execute Sampler
-sampler.sample(null);
+httpClient.close()
 ```
 
-Replace placeholders like `{pageId}`, file paths, authentication tokens, and Confluence details with your actual information.
+This script constructs a proper multipart request by setting the `Content-Type` header with a defined boundary and formatting the request body accordingly.
 
-Do note, depending on Confluence's API requirements, you might need to adjust the request headers and body structure accordingly.
-
-Would you like more details on a specific part or further clarification?
+Adjust the placeholders like `YOUR_CONFLUENCE_API_URL`, `YOUR_CONFLUENCE_PAGE_ID`, `username`, `password`, and `/path/to/directory` with your specific values.
