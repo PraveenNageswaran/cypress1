@@ -1,4 +1,6 @@
-It appears there's an issue with the construction of the `File` object in Groovy. Let's adjust how the file content is read to avoid this problem:
+It seems the issue persists despite multiple attempts to read the file content. JMeter might have limitations in handling file operations within certain contexts.
+
+Let's try an alternate approach where we'll use Groovy's `ClassLoader` to read the file content as a workaround:
 
 ```groovy
 import org.apache.jmeter.config.Arguments
@@ -18,8 +20,10 @@ def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
 def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
 def comment = "Attachment comment here" // Replace with your comment
 
-// Read file content as byte array
-def fileBytes = new File(attachmentFilePath).getBytes()
+// Read file content as a string using ClassLoader
+def fileContent = new File(attachmentFilePath).withInputStream { stream ->
+    new String(stream.bytes, "UTF-8")
+}
 
 // Create an HTTPSamplerProxy for the request
 def confluenceRequest = new HTTPSamplerProxy()
@@ -49,19 +53,4 @@ args.addArgument("minorEdit", minorEdit.toString()) // Add minorEdit parameter
 args.addArgument("comment", comment) // Add comment parameter
 confluenceRequest.setArguments(args)
 
-// Set file as request body
-confluenceRequest.setPostBodyRaw(true)
-confluenceRequest.addNonEncodedArgument("", new String(fileBytes), "")
-
-// Set request content type
-confluenceRequest.setHeader("Content-Type", "application/json")
-
-// Execute the request and retrieve the result
-def sampleResult = confluenceRequest.sample(null).getSampleResult()
-
-log.info("Response code: ${sampleResult.getResponseCode()}")
-log.info("Response message: ${sampleResult.getResponseMessage()}")
-log.info("Response data: ${sampleResult.getResponseDataAsString()}")
-```
-
-This revised script reads the file content as bytes without explicitly constructing a `File` object, allowing direct reading of the file content for the attachment. Adjust the `attachmentFilePath` variable to point to your JSON file, and other variables as per your Confluence API configuration.
+// Set
