@@ -1,0 +1,66 @@
+My apologies for the oversight. To include the file while also adding the `minoredit` and `comment` parameters, we'll need to adjust the request setup accordingly:
+
+```groovy
+import org.apache.jmeter.config.Arguments
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.samplers.SampleResult
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
+
+def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
+def username = "pinky@dinky.com"
+def password = "donkey"
+def proxyHost = "usrgrp.net"
+def proxyPort = 8080
+def proxyUsername = "pinky"
+def proxyPassword = "password123$"
+def attachmentFilePath = "path/to/your/json/file.json" // Replace with the actual path to your JSON file
+def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
+def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
+def comment = "Attachment comment here" // Replace with your comment
+
+// Create an HTTPSamplerProxy for the request
+def confluenceRequest = new HTTPSamplerProxy()
+confluenceRequest.setDomain(confluenceUrl)
+confluenceRequest.setMethod("POST")
+confluenceRequest.setPath("/rest/api/content/$pageId/child/attachment")
+confluenceRequest.setFollowRedirects(true)
+
+// Set authentication details
+def credentials = "${username}:${password}"
+def encodedCredentials = 'Basic ' + credentials.bytes.encodeBase64().toString()
+confluenceRequest.setHeader(new HeaderManager())
+confluenceRequest.getHeaderManager().add(new Header("Authorization", encodedCredentials))
+
+// Set proxy details
+confluenceRequest.setProperty("HTTPSampler.proxyHost", proxyHost)
+confluenceRequest.setProperty("HTTPSampler.proxyPort", proxyPort.toString())
+confluenceRequest.setProperty("HTTPSampler.proxyUser", proxyUsername)
+confluenceRequest.setProperty("HTTPSampler.proxyPass", proxyPassword)
+
+// Create arguments for the request
+def args = new Arguments()
+args.addArgument("os_username", username)
+args.addArgument("os_password", password)
+args.addArgument("atl_token", "no-check")
+args.addArgument("minorEdit", minorEdit.toString()) // Add minorEdit parameter
+args.addArgument("comment", comment) // Add comment parameter
+confluenceRequest.setArguments(args)
+
+// Add file for upload
+def fileArg = new HTTPFileArg()
+fileArg.setPath(attachmentFilePath)
+fileArg.setMimeType("application/json")
+fileArg.setParamName("file")
+
+confluenceRequest.setHTTPFiles([fileArg]) // Set file as HTTPFileArg in an array
+
+// Execute the request and retrieve the result
+def sampleResult = confluenceRequest.sample(null).getSampleResult()
+
+log.info("Response code: ${sampleResult.getResponseCode()}")
+log.info("Response message: ${sampleResult.getResponseMessage()}")
+log.info("Response data: ${sampleResult.getResponseDataAsString()}")
+```
+
+This adjusted script configures the `HTTPSamplerProxy` with authentication, proxy settings, and includes the `minoredit`, `comment`, and attaches the specified JSON file using `HTTPFileArg`. Adjust the variables as needed to suit your Confluence instance and the file attachment details.
