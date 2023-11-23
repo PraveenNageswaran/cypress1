@@ -1,52 +1,30 @@
-Certainly! Here's an example using `HTTPSamplerProxy` to upload multiple files starting with "messages" to a Confluence page as attachments within a JSR223 Sampler:
+It looks like the code you've provided is for a JMeter script that makes an HTTP POST request to upload a file to a Confluence page as an attachment. However, it seems that there might be some issues with the casting and the implementation of the HTTP request.
 
-```groovy
-import org.apache.jmeter.protocol.http.control.HeaderManager
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
-import org.apache.jmeter.samplers.SampleResult
+It looks like you're trying to set up the HTTP request sampler with the necessary parameters such as the domain, path, method, and file attachment. However, the casting of the HTTPFileArgs might be causing an issue.
 
-def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
-def username = "pinky@dinky.com"
-def password = "donkey"
-def pageId = "YOUR_CONFLUENCE_PAGE_ID" // Replace with the Confluence page ID
-def minorEdit = true // Set to 'true' for a minor edit, 'false' otherwise
-def comment = "Attachment comment here" // Replace with your comment
-def directoryPath = "/path/to/directory" // Replace with the directory path
+Instead of using `httpSampler.setArguments(new HTTPFileArgs(new HTTPFileArg(attachmentFilePath, "file", "application/octet-stream")));`, you should use the following approach to set the file as part of the request:
 
-def files = new File(directoryPath).listFiles({ file -> file.isFile() && file.getName().startsWith("messages") })
+```java
+HTTPSamplerProxy httpSampler = new HTTPSamplerProxy();
+httpSampler.setDomain(confluenceUrl);
+httpSampler.setPath(confluenceUrl.replace("{id}", pageId));
+httpSampler.setMethod("POST");
 
-def httpClient = new HTTPClient()
+httpSampler.setHTTPFiles(new HTTPFileArg(attachmentFilePath, "file", "application/octet-stream"));
 
-files.each { file ->
-    def sampler = new HTTPSamplerProxy()
-    sampler.setDomain(confluenceUrl)
-    sampler.setMethod("POST")
-    sampler.setPath("/rest/api/content/$pageId/child/attachment")
-    sampler.setFollowRedirects(true)
-
-    def headerManager = new HeaderManager()
-    headerManager.add(new org.apache.jmeter.protocol.http.control.Header("Authorization", "Basic " + "${username}:${password}".bytes.encodeBase64()))
-    sampler.setHeaderManager(headerManager)
-
-    def args = new org.apache.jmeter.config.Arguments()
-    args.addArgument("comment", comment)
-    args.addArgument("minorEdit", minorEdit.toString())
-    sampler.setArguments(args)
-
-    def fileBytes = new File(file.getAbsolutePath()).readBytes()
-
-    sampler.setPostBodyRaw(true)
-    sampler.addNonEncodedArgument("", new String(fileBytes), "")
-
-    def sampleResult = sampler.sample(null).getSampleResult()
-    log.info("File ${file.getName()} uploaded with response code: ${sampleResult.getResponseCode()}")
-}
-
-httpClient.close()
+// Rest of the code remains the same
 ```
 
-This script iterates through files in the specified directory (starting with "messages"), creates an `HTTPSamplerProxy` for each file, and sends a POST request to upload the file as an attachment to the Confluence page.
+Additionally, it seems that you're trying to create a custom Authorization implementation, but it's not clear whether this is necessary for your scenario.
 
-Remember to replace placeholders like `YOUR_CONFLUENCE_API_URL`, `YOUR_CONFLUENCE_PAGE_ID`, `username`, `password`, and `/path/to/directory` with your specific values.
+You can add the Authorization header directly to the HTTP request sampler using:
 
-Adjust the request parameters, authentication, and handling based on your Confluence API's requirements.
+```java
+httpSampler.setHeaderManager(new HeaderManager() {{
+    add(new Header("Authorization", "Basic " + JOrphanUtils.base64Encode(username + ":" + password)));
+}});
+```
+
+Make sure to replace `username` and `password` with your actual credentials.
+
+Finally, after setting up the HTTP request sampler, you can add it to a Thread Group and run the JMeter script to upload the file to the Confluence page as an attachment.
