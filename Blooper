@@ -1,0 +1,68 @@
+Apologies for the confusion earlier. It seems there was a mistake in the method used to set the post body for `HTTPSamplerProxy`. Let's correct that:
+
+```groovy
+import org.apache.jmeter.protocol.http.proxy.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult
+import org.apache.jmeter.config.Arguments
+import org.apache.jmeter.protocol.http.control.Header
+import java.util.Random
+
+def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
+def username = "pinky@dinky.com"
+def password = "donkey"
+
+def proxy = samplerContext.get("sampler")
+def httpClient = proxy.getHttpClient()
+
+def postRequest = new HTTPSamplerProxy()
+postRequest.setDomain("your.confluence.domain")
+postRequest.setPort(443) // Update with the appropriate port
+postRequest.setProtocol("https")
+postRequest.setMethod("POST")
+postRequest.setPath("/rest/api/content/123/child/attachment") // Replace with the specific Confluence endpoint for attaching files
+
+def authHeader = "Basic " + org.apache.commons.codec.binary.Base64.encodeBase64String((username + ":" + password).getBytes())
+postRequest.setHeaderManager(new org.apache.jmeter.protocol.http.control.HeaderManager())
+postRequest.getHeaderManager().add(new Header("Authorization", authHeader))
+
+// Generate a random boundary string
+def boundary = generateRandomBoundary()
+
+// Set the Content-Type header with the generated boundary for multipart form-data
+postRequest.getHeaderManager().add(new Header("Content-Type", "multipart/form-data; boundary=" + boundary))
+
+// Construct the form-data body with the specified boundary
+def formData = new StringBuilder()
+formData.append("--").append(boundary).append("\r\n")
+formData.append("Content-Disposition: form-data; name=\"param1\"\r\n\r\n")
+formData.append("value1\r\n")
+formData.append("--").append(boundary).append("\r\n")
+formData.append("Content-Disposition: form-data; name=\"param2\"\r\n\r\n")
+formData.append("value2\r\n")
+// Add more form-data parameters as needed...
+
+formData.append("--").append(boundary).append("--") // End boundary
+
+// Set the request body directly as a string
+postRequest.setArguments(formData.toString())
+
+def result = proxy.execute(postRequest)
+
+// Check the result for success or failure
+if (result.isSuccessful()) {
+    log.info("File attached successfully!")
+} else {
+    log.error("Attachment failed. Response code: " + result.getResponseCode())
+    log.error("Response message: " + result.getResponseMessage())
+}
+
+// Function to generate a random boundary string
+String generateRandomBoundary() {
+    def characters = (('a'..'z') + ('A'..'Z') + ('0'..'9')).join()
+    def random = new Random()
+    def boundaryLength = 16
+    return (1..boundaryLength).collect { characters[random.nextInt(characters.length())] }.join()
+}
+```
+
+This code now sets the request body using `setArguments` by directly providing the constructed form-data as a string. Adjust the parameters and API endpoints according to your use case in Confluence.
