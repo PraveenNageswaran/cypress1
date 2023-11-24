@@ -1,4 +1,4 @@
-Certainly! Here's another approach using `HTTPSamplerProxy` to construct a multipart form-data request in JMeter:
+Certainly! Here's an alternative method to construct a multipart form-data request using `HTTPSamplerProxy` in JMeter:
 
 ```groovy
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
@@ -22,12 +22,12 @@ postRequest.setPath("/rest/api/content/123/child/attachment") // Replace with th
 def authHeader = "Basic " + org.apache.commons.codec.binary.Base64.encodeBase64String((username + ":" + password).getBytes())
 postRequest.getHeaderManager().add(new Header("Authorization", authHeader))
 
-def boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+def boundary = "----BoundaryString"
 
 postRequest.getHeaderManager().add(new Header("Content-Type", "multipart/form-data; boundary=" + boundary))
 
 def formData = """
---${boundary}\r\nContent-Disposition: form-data; name="param1"\r\n\r\nvalue1\r\n--${boundary}\r\nContent-Disposition: form-data; name="param2"\r\n\r\nvalue2\r\n--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="your_file_name"\r\nContent-Type: application/octet-stream\r\n\r\n"""
+--${boundary}\r\nContent-Disposition: form-data; name="param1"\r\n\r\nvalue1\r\n--${boundary}\r\nContent-Disposition: form-data; name="param2"\r\n\r\nvalue2\r\n--${boundary}\r\nContent-Disposition: form-data; name="file\"; filename="your_file_name\"\r\nContent-Type: application/octet-stream\r\n\r\n"""
 
 def fileContent = new File(filePath).bytes
 
