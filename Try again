@@ -1,16 +1,21 @@
-It seems that the 400 Bad Request error with the message "at least one file must be attached" indicates that the Confluence REST API is expecting a file to be attached, but the request does not contain the necessary file attachment. To resolve this issue, you can adjust the script to include the file attachment in the request. Here's how you can modify the script to ensure that a file is attached to the request:
+I see that the 400 error persists despite the adjustments made to the script. To further troubleshoot the issue, let's ensure that we are using the correct request format for uploading an attachment to Confluence via the REST API.
+
+Here's an example of how you can modify the JMeter script to upload a file to Confluence using the REST API:
 
 ```groovy
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.control.Header
 import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.config.Arguments
-import org.apache.jmeter.testelement.property.CollectionProperty
 import org.apache.jmeter.protocol.http.util.HTTPFileArg
 import org.apache.jmeter.protocol.http.util.HTTPFileArgs
+import org.apache.jmeter.samplers.SampleResult
 
-// Request URL
 def baseUrl = "http://your-confluence-instance-url/rest/api/content/{pageID}/child/attachment"
+
+// File details
+def filePath = "path-to-your-file/your-file-name.txt"
+def fileName = "your-file-name.txt"
 
 // Create HTTPSamplerProxy
 def httpSampler = new HTTPSamplerProxy()
@@ -19,33 +24,24 @@ httpSampler.setPort(80)
 httpSampler.setPath("/rest/api/content/{pageID}/child/attachment")
 httpSampler.setMethod("POST")
 
-// Construct the Request Body
-def boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
-def fileName = "your-file-name.txt"
-def fileParameterName = "file"
-def fileContentType = "text/plain"
+// Add file as a parameter
+def fileArg = new HTTPFileArg()
+fileArg.setPath(filePath)
+fileArg.setParameterName("file")
+fileArg.setMimeType("text/plain")
+fileArg.setFilename(fileName)
 
-def fileContent = new File("path-to-your-file/your-file-name.txt").bytes
-
-def requestBody = "--" + boundary + "\r\n"
-requestBody += "Content-Disposition: form-data; name=\"" + fileParameterName + "\"; filename=\"" + fileName + "\"\r\n"
-requestBody += "Content-Type: " + fileContentType + "\r\n\r\n"
-requestBody += new String(fileContent) + "\r\n"
-requestBody += "--" + boundary + "--\r\n"
-
-// Set request body
-httpSampler.setPostBodyRaw(true)
-httpSampler.addNonEncodedArgument("", requestBody, "")
-
-// Set Headers
-def headers = new HeaderManager()
-headers.add(new Header("Content-Type", "multipart/form-data; boundary=" + boundary))
-httpSampler.setHeaderManager(headers)
+// Add file parameter to HTTPSampler
+def fileArgs = new HTTPFileArgs()
+fileArgs.addHTTPFileArg(fileArg)
+httpSampler.setHTTPFiles(fileArgs)
 
 // Execute the HTTPSamplerProxy
 result = httpSampler.sample()
 ```
 
-Ensure that you replace `your-confluence-instance-url`, `{pageID}`, and `path-to-your-file/your-file-name.txt` with your actual Confluence instance URL, the page ID where you want to upload the file, and the path to the file you want to attach. After making these modifications, re-run the JMeter test to ensure that the file attachment is included in the request and that the 400 Bad Request error is resolved.
+In this modified script, we have utilized the `HTTPFileArg` and `HTTPFileArgs` classes to include the file as a parameter in the HTTP request.
 
-By ensuring that the file attachment is properly included in the request, you can address the "at least one file must be attached" error from the Confluence REST API.
+Replace the placeholders `your-confluence-instance-url`, `{pageID}`, and `path-to-your-file/your-file-name.txt` with your actual Confluence instance URL, the page ID where you want to upload the file, and the path to the file you want to attach.
+
+After making these adjustments, re-run the JMeter test and verify that the file attachment is included in the request. This approach should adhere to the requirements of the Confluence REST API for uploading attachments and help mitigate the 400 Bad Request error.
