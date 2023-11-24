@@ -1,0 +1,55 @@
+If you need to send multipart form data in the body of your HTTP request using the JSR223 Sampler in JMeter, you can modify the script to include the necessary multipart form data. Here's an updated version of the script that includes multipart form data in the request body:
+
+```groovy
+import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.control.HeaderManager
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.jmeter.config.Arguments
+import org.apache.jmeter.protocol.http.util.HTTPConstants
+import org.apache.jmeter.testelement.property.StringProperty
+
+// Confluence REST API endpoint for file attachment
+String confluenceRestApiUrl = "https://your-confluence-url/rest/api/content/{pageId}/child/attachment"
+int pageId = 12345 // The ID of the Confluence page to which you want to attach the file
+String username = "your-username"
+String password = "your-password"
+String fileToUpload = "path-to-your-file-to-upload.txt" // Replace with the actual file path
+
+// Create HTTPSamplerProxy
+HTTPSamplerProxy httpSampler = new HTTPSamplerProxy()
+httpSampler.setProtocol("https")
+httpSampler.setDomain("your-confluence-url")
+httpSampler.setPath("/rest/api/content/${pageId}/child/attachment")
+httpSampler.setMethod("POST")
+
+// Set the username and password for basic authentication
+HeaderManager headerManager = new HeaderManager()
+headerManager.add(new Header(HTTPConstants.HEADER_AUTHORIZATION, "Basic " + "${username}:${password}".bytes.encodeBase64().toString()))
+httpSampler.setHeaderManager(headerManager)
+
+// Set the request body as multipart form data
+Arguments arguments = new Arguments()
+arguments.addArgument("file", fileToUpload, "")
+httpSampler.setArguments(new StringProperty(HTTPConstants.POST_BODY, "")) // Remove any existing body
+httpSampler.setArguments(arguments)
+
+// Set the content type
+httpSampler.setProperty(new StringProperty(HTTPSamplerProxy.HEADER_CONTENT_TYPE, "multipart/form-data"))
+
+// Set the file to upload
+httpSampler.setFileField("file")
+httpSampler.setFileFieldFile(fileToUpload)
+
+// Execute the HTTPSampler
+httpSampler.sample()
+
+// Get the response
+String response = new String(httpSampler.getResponseData())
+
+// Print the response
+log.info("Response: $response")
+```
+
+In this modified script, we are using the `setArguments` method to set the multipart form data parameters for the file attachment. We are also setting the content type explicitly to "multipart/form-data" using the `setProperty` method.
+
+Please make sure to replace "your-confluence-url," "pageId," "your-username," "your-password," and "path-to-your-file-to-upload.txt" with the appropriate values for your Confluence instance, Confluence page ID, username, password, and the file path that you want to upload.
