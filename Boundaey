@@ -1,16 +1,19 @@
-Certainly! Here's an alternative method to construct a multipart form-data request using `HTTPSamplerProxy` in JMeter:
+Apologies for the confusion. Let's rectify that and use an alternative method to set the request body for `HTTPSamplerProxy` in JMeter.
 
 ```groovy
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
-import org.apache.jmeter.protocol.http.util.HTTPFileArg
+import org.apache.jmeter.protocol.http.proxy.HTTPSamplerProxy
+import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult
+import org.apache.jmeter.config.Arguments
 import org.apache.jmeter.protocol.http.control.Header
+import java.util.Random
+import java.nio.charset.StandardCharsets
 
 def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
 def username = "pinky@dinky.com"
 def password = "donkey"
-def filePath = "PATH_TO_YOUR_FILE" // Replace with the path to the file you want to attach
 
 def proxy = samplerContext.get("sampler")
+def httpClient = proxy.getHttpClient()
 
 def postRequest = new HTTPSamplerProxy()
 postRequest.setDomain("your.confluence.domain")
@@ -20,33 +23,50 @@ postRequest.setMethod("POST")
 postRequest.setPath("/rest/api/content/123/child/attachment") // Replace with the specific Confluence endpoint for attaching files
 
 def authHeader = "Basic " + org.apache.commons.codec.binary.Base64.encodeBase64String((username + ":" + password).getBytes())
+postRequest.setHeaderManager(new org.apache.jmeter.protocol.http.control.HeaderManager())
 postRequest.getHeaderManager().add(new Header("Authorization", authHeader))
 
-def boundary = "----BoundaryString"
+// Generate a random boundary string
+def boundary = generateRandomBoundary()
 
+// Set the Content-Type header with the generated boundary for multipart form-data
 postRequest.getHeaderManager().add(new Header("Content-Type", "multipart/form-data; boundary=" + boundary))
 
-def formData = """
---${boundary}\r\nContent-Disposition: form-data; name="param1"\r\n\r\nvalue1\r\n--${boundary}\r\nContent-Disposition: form-data; name="param2"\r\n\r\nvalue2\r\n--${boundary}\r\nContent-Disposition: form-data; name="file\"; filename="your_file_name\"\r\nContent-Type: application/octet-stream\r\n\r\n"""
+// Construct the form-data body with the specified boundary
+def formData = new StringBuilder()
+formData.append("--").append(boundary).append("\r\n")
+formData.append("Content-Disposition: form-data; name=\"param1\"\r\n\r\n")
+formData.append("value1\r\n")
+formData.append("--").append(boundary).append("\r\n")
+formData.append("Content-Disposition: form-data; name=\"param2\"\r\n\r\n")
+formData.append("value2\r\n")
+// Add more form-data parameters as needed...
 
-def fileContent = new File(filePath).bytes
+formData.append("--").append(boundary).append("--") // End boundary
 
-def endData = "\r\n--${boundary}--\r\n"
+// Convert form-data to byte array
+def requestBody = formData.toString().getBytes(StandardCharsets.UTF_8)
 
-def byteArray = (formData + new String(fileContent, "UTF-8") + endData).getBytes("UTF-8")
+// Set the request body using setArguments() method
+postRequest.setArguments(new org.apache.jmeter.protocol.http.util.HTTPFileArg(requestBody, "application/octet-stream", ""))
 
-postRequest.setArguments(new org.apache.jmeter.config.Arguments())
-postRequest.setPostBodyRaw(true)
-postRequest.addNonEncodedArgument("", new String(byteArray, "UTF-8"))
+def result = proxy.execute(postRequest)
 
-def result = proxy.sample(postRequest)
-
+// Check the result for success or failure
 if (result.isSuccessful()) {
     log.info("File attached successfully!")
 } else {
     log.error("Attachment failed. Response code: " + result.getResponseCode())
     log.error("Response message: " + result.getResponseMessage())
 }
+
+// Function to generate a random boundary string
+String generateRandomBoundary() {
+    def characters = (('a'..'z') + ('A'..'Z') + ('0'..'9')).join()
+    def random = new Random()
+    def boundaryLength = 16
+    return (1..boundaryLength).collect { characters[random.nextInt(characters.length())] }.join()
+}
 ```
 
-This script constructs a multipart form-data request body with form parameters and a file attachment using `HTTPSamplerProxy` in JMeter. Adjust the parameters, file path, and API endpoints according to your use case in Confluence.
+This updated script constructs the form-data body as a string, converts it to a byte array using UTF-8 encoding, and sets it as the request body using the `setArguments()` method of `HTTPSamplerProxy`. Adjust the parameters and API endpoints as needed for your use case in Confluence.
