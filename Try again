@@ -1,47 +1,45 @@
-I see that the 400 error persists despite the adjustments made to the script. To further troubleshoot the issue, let's ensure that we are using the correct request format for uploading an attachment to Confluence via the REST API.
+I apologize for the confusion. It seems that the HTTPFileArg and HTTPFileArgs classes are not available in the JMeter context as mentioned in the previous response. Let's revise the script to handle file upload in a different way. We can achieve the file upload to Confluence by directly sending a multipart/form-data request, which is a common way to upload files using the REST API.
 
-Here's an example of how you can modify the JMeter script to upload a file to Confluence using the REST API:
+Here's the updated example of how to modify the JMeter script to upload a file to Confluence using the REST API with multipart/form-data:
 
 ```groovy
-import org.apache.jmeter.protocol.http.control.Header
-import org.apache.jmeter.protocol.http.control.HeaderManager
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.config.Arguments
 import org.apache.jmeter.protocol.http.util.HTTPFileArg
-import org.apache.jmeter.protocol.http.util.HTTPFileArgs
 import org.apache.jmeter.samplers.SampleResult
+import org.apache.jmeter.threads.JMeterContext
+import org.apache.jmeter.threads.JMeterContextService
+import org.apache.jmeter.util.JMeterUtils
+import org.apache.jmeter.protocol.http.control.Header
 
-def baseUrl = "http://your-confluence-instance-url/rest/api/content/{pageID}/child/attachment"
-
-// File details
+def pageId = "your-page-id"
+def confluenceUrl = "http://your-confluence-instance-url/rest/api/content/$pageId/child/attachment"
 def filePath = "path-to-your-file/your-file-name.txt"
-def fileName = "your-file-name.txt"
 
-// Create HTTPSamplerProxy
-def httpSampler = new HTTPSamplerProxy()
-httpSampler.setDomain("your-confluence-instance-url")
-httpSampler.setPort(80)
-httpSampler.setPath("/rest/api/content/{pageID}/child/attachment")
-httpSampler.setMethod("POST")
+def jmeterContext = JMeterContextService.getContext()
+def sampler = new HTTPSamplerProxy()
 
-// Add file as a parameter
-def fileArg = new HTTPFileArg()
-fileArg.setPath(filePath)
-fileArg.setParameterName("file")
-fileArg.setMimeType("text/plain")
-fileArg.setFilename(fileName)
+sampler.setDomain("your-confluence-instance-url")
+sampler.setPath("/rest/api/content/$pageId/child/attachment")
+sampler.setMethod("POST")
+sampler.setProperty("Content-Type", "multipart/form-data")
 
-// Add file parameter to HTTPSampler
-def fileArgs = new HTTPFileArgs()
-fileArgs.addHTTPFileArg(fileArg)
-httpSampler.setHTTPFiles(fileArgs)
+def file = new File(filePath)
+def fileBytes = Files.readAllBytes(file.toPath())
+def fileParam = new HTTPFileArg("file", "your-file-name.txt", "text/plain", fileBytes)
 
-// Execute the HTTPSamplerProxy
-result = httpSampler.sample()
+def formArguments = new Arguments()
+formArguments.addArgument("file", fileParam.toString())
+
+sampler.setArguments(formArguments)
+sampler.setPostBodyRaw(true)
+
+def sampleResult = sampler.sample()
+
 ```
 
-In this modified script, we have utilized the `HTTPFileArg` and `HTTPFileArgs` classes to include the file as a parameter in the HTTP request.
+Replace the placeholders `your-confluence-instance-url` and `your-page-id` with your actual Confluence instance URL and the page ID where you want to upload the file. Also, replace `path-to-your-file/your-file-name.txt` with the actual path to the file you want to attach.
 
-Replace the placeholders `your-confluence-instance-url`, `{pageID}`, and `path-to-your-file/your-file-name.txt` with your actual Confluence instance URL, the page ID where you want to upload the file, and the path to the file you want to attach.
+In this modified script, we use the `HTTPSamplerProxy` to create a POST request with multipart/form-data content type, and we read the file content into a byte array to include it as a parameter in the request.
 
-After making these adjustments, re-run the JMeter test and verify that the file attachment is included in the request. This approach should adhere to the requirements of the Confluence REST API for uploading attachments and help mitigate the 400 Bad Request error.
+Please modify the script as necessary and try running the test again to see if the file upload to Confluence using the REST API is successful without encountering the 400 error.
