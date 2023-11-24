@@ -1,12 +1,14 @@
-Apologies for the confusion. Let's rectify that and use an alternative method to set the request body for `HTTPSamplerProxy` in JMeter.
+Apologies for the confusion. It seems the `HTTPSamplerProxy` might not support setting the request body directly with `setArguments()` for multipart form-data.
+
+In this case, let's use a different approach to construct the request body with form-data and execute the request:
 
 ```groovy
 import org.apache.jmeter.protocol.http.proxy.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult
 import org.apache.jmeter.config.Arguments
 import org.apache.jmeter.protocol.http.control.Header
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
 import java.util.Random
-import java.nio.charset.StandardCharsets
 
 def confluenceUrl = "YOUR_CONFLUENCE_API_URL" // Replace with your Confluence API URL
 def username = "pinky@dinky.com"
@@ -42,13 +44,15 @@ formData.append("Content-Disposition: form-data; name=\"param2\"\r\n\r\n")
 formData.append("value2\r\n")
 // Add more form-data parameters as needed...
 
+formData.append("--").append(boundary).append("\r\n")
+formData.append("Content-Disposition: form-data; name=\"file\"; filename=\"yourfile.txt\"\r\n")
+formData.append("Content-Type: text/plain\r\n\r\n")
+formData.append("Your file content goes here\r\n")
 formData.append("--").append(boundary).append("--") // End boundary
 
-// Convert form-data to byte array
-def requestBody = formData.toString().getBytes(StandardCharsets.UTF_8)
-
-// Set the request body using setArguments() method
-postRequest.setArguments(new org.apache.jmeter.protocol.http.util.HTTPFileArg(requestBody, "application/octet-stream", ""))
+// Set the request body using a HTTPFileArg
+def requestBody = formData.toString()
+postRequest.setHTTPFileArg(new HTTPFileArg(requestBody, "application/octet-stream", ""))
 
 def result = proxy.execute(postRequest)
 
@@ -69,4 +73,4 @@ String generateRandomBoundary() {
 }
 ```
 
-This updated script constructs the form-data body as a string, converts it to a byte array using UTF-8 encoding, and sets it as the request body using the `setArguments()` method of `HTTPSamplerProxy`. Adjust the parameters and API endpoints as needed for your use case in Confluence.
+This revised script constructs the form-data body manually and sets it as the request body using a `HTTPFileArg`. Adjust the parameters and API endpoints as needed for your use case in Confluence.
