@@ -1,6 +1,12 @@
-I apologize for the confusion. It seems that the HTTPFileArg and HTTPFileArgs classes are not available in the JMeter context as mentioned in the previous response. Let's revise the script to handle file upload in a different way. We can achieve the file upload to Confluence by directly sending a multipart/form-data request, which is a common way to upload files using the REST API.
+I understand the frustration. The "400 Bad Request" error can be frustrating, but we can work through this. Let's take a step back and ensure that we're constructing the request correctly.
 
-Here's the updated example of how to modify the JMeter script to upload a file to Confluence using the REST API with multipart/form-data:
+When uploading a file using the Confluence REST API, the request should be a multipart/form-data POST request. The key points to consider are:
+
+1. Correct URL: The URL should include the page ID and the "child/attachment" endpoint.
+2. Authentication: Make sure you are providing proper authentication in the request header, such as Basic Authentication or using an API token.
+3. Payload: The payload should include the file data as a part of the multipart request.
+
+Let's modify the script to ensure these points are covered. Please adapt the following example according to your specific needs:
 
 ```groovy
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
@@ -10,7 +16,6 @@ import org.apache.jmeter.samplers.SampleResult
 import org.apache.jmeter.threads.JMeterContext
 import org.apache.jmeter.threads.JMeterContextService
 import org.apache.jmeter.util.JMeterUtils
-import org.apache.jmeter.protocol.http.control.Header
 
 def pageId = "your-page-id"
 def confluenceUrl = "http://your-confluence-instance-url/rest/api/content/$pageId/child/attachment"
@@ -24,22 +29,26 @@ sampler.setPath("/rest/api/content/$pageId/child/attachment")
 sampler.setMethod("POST")
 sampler.setProperty("Content-Type", "multipart/form-data")
 
-def file = new File(filePath)
-def fileBytes = Files.readAllBytes(file.toPath())
-def fileParam = new HTTPFileArg("file", "your-file-name.txt", "text/plain", fileBytes)
+def headers = []
+// Add necessary headers such as authentication
+headers.add(new Header("Authorization", "Basic your-base64-encoded-credentials"))
+sampler.setRequestHeaders(headers)
 
-def formArguments = new Arguments()
-formArguments.addArgument("file", fileParam.toString())
+// Build the multipart/form-data body
+def boundary = "---------------------------" + System.currentTimeMillis()
+def requestBody = new StringBuilder()
+requestBody.append("--").append(boundary).append("\r\n")
+requestBody.append('Content-Disposition: form-data; name="file"; filename="your-file-name.txt"').append("\r\n")
+requestBody.append("Content-Type: text/plain").append("\r\n\r\n")
+requestBody.append(new File(filePath).text).append("\r\n")
+requestBody.append("--").append(boundary).append("--\r\n")
 
-sampler.setArguments(formArguments)
-sampler.setPostBodyRaw(true)
+sampler.addNonEncodedArgument("", requestBody.toString(), "")
 
 def sampleResult = sampler.sample()
 
 ```
 
-Replace the placeholders `your-confluence-instance-url` and `your-page-id` with your actual Confluence instance URL and the page ID where you want to upload the file. Also, replace `path-to-your-file/your-file-name.txt` with the actual path to the file you want to attach.
+In this example, we construct the multipart/form-data body manually and set it as the request payload. Make sure to replace placeholders such as `your-confluence-instance-url`, `your-page-id`, `your-base64-encoded-credentials`, and `path-to-your-file/your-file-name.txt` with your actual values.
 
-In this modified script, we use the `HTTPSamplerProxy` to create a POST request with multipart/form-data content type, and we read the file content into a byte array to include it as a parameter in the request.
-
-Please modify the script as necessary and try running the test again to see if the file upload to Confluence using the REST API is successful without encountering the 400 error.
+After adapting the script, try running the test again to see if the file upload to Confluence using the REST API is successful. If you're still encountering the "400 Bad Request" error, let's further investigate the request and response to pinpoint the issue.
