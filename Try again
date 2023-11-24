@@ -1,58 +1,51 @@
-To set the multipart boundary when sending multipart form data in the HTTP request body using JMeter's JSR223 Sampler, you can include the boundary in the Content-Type header and also explicitly set the boundary in the request body. Below is an example of how you can modify the script to include the multipart boundary:
+It seems that the 400 Bad Request error with the message "at least one file must be attached" indicates that the Confluence REST API is expecting a file to be attached, but the request does not contain the necessary file attachment. To resolve this issue, you can adjust the script to include the file attachment in the request. Here's how you can modify the script to ensure that a file is attached to the request:
 
 ```groovy
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.protocol.http.control.Header
 import org.apache.jmeter.protocol.http.control.HeaderManager
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 import org.apache.jmeter.config.Arguments
-import org.apache.jmeter.protocol.http.util.HTTPConstants
-import org.apache.jmeter.testelement.property.StringProperty
+import org.apache.jmeter.testelement.property.CollectionProperty
+import org.apache.jmeter.protocol.http.util.HTTPFileArg
+import org.apache.jmeter.protocol.http.util.HTTPFileArgs
 
-// Confluence REST API endpoint for file attachment
-String confluenceRestApiUrl = "https://your-confluence-url/rest/api/content/{pageId}/child/attachment"
-int pageId = 12345 // The ID of the Confluence page to which you want to attach the file
-String username = "your-username"
-String password = "your-password"
-String fileToUpload = "path-to-your-file-to-upload.txt" // Replace with the actual file path
-
-// Set the multipart boundary
-String boundary = "YOUR_BOUNDARY" // Replace with your desired boundary string
+// Request URL
+def baseUrl = "http://your-confluence-instance-url/rest/api/content/{pageID}/child/attachment"
 
 // Create HTTPSamplerProxy
-HTTPSamplerProxy httpSampler = new HTTPSamplerProxy()
-httpSampler.setProtocol("https")
-httpSampler.setDomain("your-confluence-url")
-httpSampler.setPath("/rest/api/content/${pageId}/child/attachment")
+def httpSampler = new HTTPSamplerProxy()
+httpSampler.setDomain("your-confluence-instance-url")
+httpSampler.setPort(80)
+httpSampler.setPath("/rest/api/content/{pageID}/child/attachment")
 httpSampler.setMethod("POST")
 
-// Set the username and password for basic authentication
-HeaderManager headerManager = new HeaderManager()
-headerManager.add(new Header(HTTPConstants.HEADER_AUTHORIZATION, "Basic " + "${username}:${password}".bytes.encodeBase64().toString()))
-httpSampler.setHeaderManager(headerManager)
+// Construct the Request Body
+def boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+def fileName = "your-file-name.txt"
+def fileParameterName = "file"
+def fileContentType = "text/plain"
 
-// Set the request body as multipart form data with the boundary
-String body = "--${boundary}\r\n"
-body += "Content-Disposition: form-data; name=\"file\"; filename=\"${fileToUpload}\"\r\n"
-body += "Content-Type: application/octet-stream\r\n\r\n"
-body += new File(fileToUpload).text + "\r\n"
-body += "--${boundary}--\r\n"
+def fileContent = new File("path-to-your-file/your-file-name.txt").bytes
 
-// Set the request body and content type
+def requestBody = "--" + boundary + "\r\n"
+requestBody += "Content-Disposition: form-data; name=\"" + fileParameterName + "\"; filename=\"" + fileName + "\"\r\n"
+requestBody += "Content-Type: " + fileContentType + "\r\n\r\n"
+requestBody += new String(fileContent) + "\r\n"
+requestBody += "--" + boundary + "--\r\n"
+
+// Set request body
 httpSampler.setPostBodyRaw(true)
-httpSampler.addNonEncodedArgument("", body, "")
+httpSampler.addNonEncodedArgument("", requestBody, "")
 
-httpSampler.setProperty(new StringProperty(HTTPSamplerProxy.HEADER_CONTENT_TYPE, "multipart/form-data; boundary=${boundary}"))
+// Set Headers
+def headers = new HeaderManager()
+headers.add(new Header("Content-Type", "multipart/form-data; boundary=" + boundary))
+httpSampler.setHeaderManager(headers)
 
-// Execute the HTTPSampler
-httpSampler.sample()
-
-// Get the response
-String response = new String(httpSampler.getResponseData())
-
-// Print the response
-log.info("Response: $response")
+// Execute the HTTPSamplerProxy
+result = httpSampler.sample()
 ```
 
-In this modified script, we've explicitly set the multipart boundary in the Content-Type header using the `setProperty` method. Additionally, we've constructed the request body with the multipart boundary included and set it using the `setPostBodyRaw` and `addNonEncodedArgument` methods.
+Ensure that you replace `your-confluence-instance-url`, `{pageID}`, and `path-to-your-file/your-file-name.txt` with your actual Confluence instance URL, the page ID where you want to upload the file, and the path to the file you want to attach. After making these modifications, re-run the JMeter test to ensure that the file attachment is included in the request and that the 400 Bad Request error is resolved.
 
-Please replace "your-confluence-url," "pageId," "your-username," "your-password," "path-to-your-file-to-upload.txt," and "YOUR_BOUNDARY" with the appropriate values for your Confluence instance, Confluence page ID, username, password, file path, and desired boundary string, respectively.
+By ensuring that the file attachment is properly included in the request, you can address the "at least one file must be attached" error from the Confluence REST API.
