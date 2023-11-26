@@ -1,0 +1,27 @@
+// Import the HTTP Sampler Proxy library
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
+// Import the JSON library
+import groovy.json.JsonSlurper;
+
+// Read the JSON file from the filesystem
+JsonSlurper slurper = new JsonSlurper();
+String jsonString = slurper.parse(new File("path/to/your/json/file.json"));
+
+// Create an HTTPSamplerProxy object and configure it
+HTTPSamplerProxy sampler = new HTTPSamplerProxy();
+sampler.domain = "confluence.example.com";
+sampler.port = 8080;
+sampler.path = "/rest/api/content";
+sampler.method = "POST";
+sampler.addHeader("Content-Type", "multipart/form-data");
+
+// Create a Form Data Part with the JSON file as an attachment
+FormDataPart formDataPart = new FormDataPart("attachment", "my-attachment.json", "application/json", new File("path/to/your/json/file.json"));
+sampler.addBodyPart(formDataPart);
+
+// Add the HTTPSamplerProxy object to the JMeter sampler
+vars.put("sampler", sampler);
+
+// Execute the JSR223 sampler
+HTTPSamplerProxy sampler = (HTTPSamplerProxy) vars.get("sampler");
+sampler.sample();
