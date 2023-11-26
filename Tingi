@@ -1,0 +1,34 @@
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.json.simple.JSONObject
+import org.json.simple.parser.JSONParser
+import org.apache.commons.io.FileUtils
+
+// Read the JSON file from the filesystem
+String jsonFilePath = "path/to/your/json/file.json"
+String jsonContent = FileUtils.readFileToString(new File(jsonFilePath))
+JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonContent)
+
+// Create an HTTP Sampler Proxy object
+HTTPSamplerProxy sampler = new HTTPSamplerProxy()
+sampler.domain = "confluence.example.com"
+sampler.port = 8080
+sampler.path = "/rest/api/content"
+sampler.method = "POST"
+
+// Create a multipart entity with the JSON file as an attachment
+def multipartEntity = MultipartEntityBuilder.create()
+    .addTextBody("title", "My Attachment")
+    .addBinaryBody("attachment", new File(jsonFilePath), ContentType.APPLICATION_JSON, "my-attachment.json")
+    .build()
+
+sampler.setBody(multipartEntity.toString())
+sampler.setSendMultipartForm(true)
+
+// Add the HTTPSamplerProxy object to the JSR223 sampler
+vars.put("sampler", sampler)
+
+// Execute the JSR223 sampler
+HTTPSamplerProxy sampler = (HTTPSamplerProxy) vars.get("sampler")
+sampler.sample()
