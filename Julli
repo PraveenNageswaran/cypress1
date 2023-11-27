@@ -1,0 +1,3 @@
+('__jm__Loop
+
+{__groovy(vars.getObject('myArray')[vars.get('__jm__Loop Controller Name__idx').toInteger()],)}Replace 'Loop Controller Name' with
