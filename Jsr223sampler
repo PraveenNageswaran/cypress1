@@ -1,0 +1,14 @@
+
+for (int i = 0; i < count; i++) {
+    def newSampler = new JSR223Sampler()
+    
+    // Set the name for the sampler
+    newSampler.setName("Sampler_${i+1}") // Assigning names like Sampler_1, Sampler_2, ...
+    
+    // Set script language, script text, and other configurations for the sampler as needed
+    newSampler.setScriptLanguage("groovy")
+    newSampler.setScript("add(5, 3)") // Example usage of the 'add' function
+    
+    // Execute the sampler or further configure it as needed
+    // Execute newSampler.execute() or other actions
+}
