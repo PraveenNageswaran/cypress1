@@ -1,0 +1,31 @@
+Certainly! If you want to use the `new GroovyShell()` approach to execute a Groovy script that utilizes an enum-like object (`Colors`), here's an example:
+
+Let's say you have a Groovy script named `script.groovy` that uses the `Colors` enum-like object:
+
+```groovy
+// script.groovy
+def Colors = [
+    RED: 'Red',
+    BLUE: 'Blue',
+    GREEN: 'Green'
+]
+
+// Loop through the keys (variable names) of the "enum-like" object
+Colors.each { key, value ->
+    log.info("Variable name: $key, Value: $value")
+}
+```
+
+To execute this script using `GroovyShell`:
+
+```bash
+groovysh -e "def Colors = [RED: 'Red', BLUE: 'Blue', GREEN: 'Green']; Colors.each { key, value -> println(\"Variable name: $key, Value: $value\") }"
+```
+
+Or using `GroovyShell` with `new GroovyShell()`:
+
+```bash
+groovy -e "def Colors = [RED: 'Red', BLUE: 'Blue', GREEN: 'Green']; Colors.each { key, value -> println(\"Variable name: $key, Value: $value\") }"
+```
+
+Both commands execute the script directly through GroovyShell by defining the `Colors` enum-like object and looping through its keys and values. Adjust the object definition and loop logic according to your specific enum-like object's structure and behavior.
