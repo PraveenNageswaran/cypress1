@@ -1,24 +1,20 @@
-To retrieve the length of each row in a CSV file within JMeter, you can utilize a Groovy script within a JSR223 Sampler. This script reads the CSV file, splits each line into rows, and calculates the length of each row. Here's an example:
+To count the total number of rows in a CSV file in JMeter using a Groovy script within a JSR223 Sampler, you can employ the following approach:
 
 ```groovy
 File csvFile = new File('path/to/your/file.csv')
-List<String> rowLengths = []
+int rowCount = 0
 
 csvFile.eachLine { line ->
-    // Calculate the length of each row and store it in the rowLengths list
-    rowLengths.add(line.length().toString())
+    // Increment the row count for each line read
+    rowCount++
 }
 
-// Join the row lengths into a single string for easier printing or further use
-String allRowLengths = rowLengths.join(',')
+log.info("Total number of rows in the CSV file: ${rowCount}")
 
-// Log the lengths of each row
-log.info("Lengths of each row: ${allRowLengths}")
-
-// Store the row lengths in a JMeter variable if needed
-vars.put('row_lengths', allRowLengths)
+// Store the row count in a JMeter variable if needed
+vars.put('total_row_count', String.valueOf(rowCount))
 ```
 
 Replace `'path/to/your/file.csv'` with the actual path to your CSV file.
 
-This script reads each line of the CSV file, calculates the length of each line (row), stores the lengths in a list, and logs the lengths as a comma-separated string. You can also store the row lengths in a JMeter variable `row_lengths` for further use in your test plan. Adjust the script according to your specific needs.
+This script iterates through each line of the CSV file and increments the `rowCount` variable for each line, effectively counting the number of rows in the file. The total row count is then logged, and you can store it in a JMeter variable (`total_row_count`) for further use within your test plan. Adjust the script as per your requirements.
