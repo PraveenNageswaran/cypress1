@@ -29,3 +29,47 @@ groovy -e "def Colors = [RED: 'Red', BLUE: 'Blue', GREEN: 'Green']; Colors.each 
 ```
 
 Both commands execute the script directly through GroovyShell by defining the `Colors` enum-like object and looping through its keys and values. Adjust the object definition and loop logic according to your specific enum-like object's structure and behavior.
+______
+
+If you want to access all enum values without using a loop in Groovy, you can use the `values()` method available for enums. This method returns an array containing all the enum constants. 
+
+For example, assuming you have an enum called `TaskTopics` defined in `c:/task/topics.groovy`:
+
+```groovy
+// topics.groovy
+enum TaskTopics {
+    TASK_1,
+    TASK_2,
+    TASK_3
+}
+```
+
+You can access enum objects without a loop as follows:
+
+```groovy
+// Your main script
+def topicPath = "c:/task/topics.groovy"
+
+def scriptContent = new File(topicPath).text // Read the content of the file
+
+def shell = new GroovyShell()
+shell.evaluate(scriptContent) // Execute the script content
+
+// Access enum objects without a loop
+import TaskTopics
+
+def enumObjects = TaskTopics.values() // Access all enum objects
+
+// Access specific enum values directly without a loop
+def task1 = TaskTopics.TASK_1
+def task2 = TaskTopics.TASK_2
+def task3 = TaskTopics.TASK_3
+
+// Example usage
+println(enumObjects) // Prints all enum objects
+println(task1) // Prints a specific enum value directly
+println(task2) // Prints another specific enum value directly
+println(task3) // Prints yet another specific enum value directly
+```
+
+The `values()` method returns an array containing all the enum objects, allowing you to access them without explicitly using a loop. Additionally, you can access specific enum values directly by their names (`TASK_1`, `TASK_2`, `TASK_3`). Adjust the file path and enum name as per your file structure and enum definition.
