@@ -1,18 +1,24 @@
-Sure, to print the maximum length of the CSV file in the JMeter log, you can modify the previous Groovy script in the JSR223 Sampler as follows:
+To retrieve the length of each row in a CSV file within JMeter, you can utilize a Groovy script within a JSR223 Sampler. This script reads the CSV file, splits each line into rows, and calculates the length of each row. Here's an example:
 
 ```groovy
-def max_length = 0
+File csvFile = new File('path/to/your/file.csv')
+List<String> rowLengths = []
 
-new File('path/to/your/file.csv').eachLine { line ->
-    if (line.length() > max_length) {
-        max_length = line.length()
-    }
+csvFile.eachLine { line ->
+    // Calculate the length of each row and store it in the rowLengths list
+    rowLengths.add(line.length().toString())
 }
 
-log.info("Maximum length of the CSV file: " + max_length)
-vars.put('max_length', max_length.toString())
+// Join the row lengths into a single string for easier printing or further use
+String allRowLengths = rowLengths.join(',')
+
+// Log the lengths of each row
+log.info("Lengths of each row: ${allRowLengths}")
+
+// Store the row lengths in a JMeter variable if needed
+vars.put('row_lengths', allRowLengths)
 ```
 
-This script not only stores the maximum length in the JMeter variable `max_length` but also logs the maximum length to the JMeter log using `log.info()`.
+Replace `'path/to/your/file.csv'` with the actual path to your CSV file.
 
-Replace `'path/to/your/file.csv'` with the actual path to your CSV file. This modification will log the maximum length of the CSV file during the JMeter test run.
+This script reads each line of the CSV file, calculates the length of each line (row), stores the lengths in a list, and logs the lengths as a comma-separated string. You can also store the row lengths in a JMeter variable `row_lengths` for further use in your test plan. Adjust the script according to your specific needs.
