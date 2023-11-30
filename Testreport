@@ -1,0 +1,21 @@
+testreport
+
+Of course! In Groovy, you can achieve this by formatting the current date and time using `java.time`:
+
+```groovy
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+// Get the current date and time
+def currentDateTime = LocalDateTime.now()
+
+// Define the desired date time format
+def formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy,hh:mm:ss a")
+
+// Format the current date and time
+def formattedDateTime = currentDateTime.format(formatter)
+
+println(formattedDateTime)
+```
+
+This Groovy code will display the current date and time in the format you specified, like "Monday, April 27, 2020, 09:23:17 AM".
