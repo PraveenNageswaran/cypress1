@@ -1,0 +1,67 @@
+Apologies for the confusion. In the provided code, the `view` variable is a parameter passed to the `generateConfluenceTable` function to determine whether to generate the table for "All" or "Differences". However, in the previous code snippets, the view was hardcoded within the function call.
+
+Here's an updated version to ensure the view variable is properly initialized and passed to the function:
+
+```groovy
+// Your JSON data containing objects with assertions
+def jsonData = '''
+[
+    {
+        "Sourcefield": "Field1",
+        "Targetfield": "Field1",
+        "SourceValue": "Value1",
+        "TargetValue": "Value1",
+        "ValueAssertion": "pass",
+        "DataTypeAssertion": "pass",
+        "DataLengthAssertion": "fail",
+        "RegexAssertion": "pass"
+    },
+    {
+        "Sourcefield": "Field2",
+        "Targetfield": "Field2",
+        "SourceValue": "Value2",
+        "TargetValue": "Value2",
+        "ValueAssertion": "fail",
+        "DataTypeAssertion": "pass",
+        "DataLengthAssertion": "fail",
+        "RegexAssertion": "pass"
+    }
+    // Add more objects as needed
+]
+'''
+
+// Convert JSON to a Groovy object
+def json = new groovy.json.JsonSlurper().parseText(jsonData)
+
+// Function to generate Confluence table markup from JSON data
+def generateConfluenceTable(view, data) {
+    def table = "<table>"
+    table += "<tr><th>TSourcefield</th><th>TTarget field</th><th>TSource value</th><th>TTarget value</th><th>TValue assertion</th><th>TDataType assertion</th><th>TData length assertion</th><th>TRegex assertion</th></tr>"
+    
+    data.each { item ->
+        // Check if it should display all or only differences (failed assertions)
+        if (view == "All" || (view == "Differences" && (item.ValueAssertion == "fail" || item.DataTypeAssertion == "fail" || item.DataLengthAssertion == "fail" || item.RegexAssertion == "fail"))) {
+            table += "<tr>"
+            table += "<td>${item.Sourcefield}</td><td>${item.Targetfield}</td><td>${item.SourceValue}</td><td>${item.TargetValue}</td><td>${item.ValueAssertion}</td><td>${item.DataTypeAssertion}</td><td>${item.DataLengthAssertion}</td><td>${item.RegexAssertion}</td>"
+            table += "</tr>"
+        }
+    }
+    
+    table += "</table>"
+    return table
+}
+
+// Generate HTML links for All and Differences views
+def allTable = generateConfluenceTable("All", json)
+def differencesTable = generateConfluenceTable("Differences", json)
+
+// Create the HTML links
+def allLink = "<a href='#' onclick=\"document.getElementById('content').innerHTML = '${allTable}'\">All</a>"
+def differencesLink = "<a href='#' onclick=\"document.getElementById('content').innerHTML = '${differencesTable}'\">Differences</a>"
+
+// Output the links
+log.info("All Link: $allLink")
+log.info("Differences Link: $differencesLink")
+```
+
+Now, the `generateConfluenceTable` function takes a `view` parameter that can be set to "All" or "Differences" when calling the function. This determines which data is included in the generated table based on the assertions provided in the JSON data. Adjust the JSON data and logic as per your specific requirements.
