@@ -1,0 +1,20 @@
+Certainly! To store the JSON-like structure as a list in Groovy, you can directly define a list of maps.
+
+```groovy
+def myList = [
+    [Fruit: 'apple'],
+    [Fruit: 'pears'],
+    [Fruit: 'mango'],
+    [Veg: 'radish'],
+    [Veg: 'pumpkin']
+]
+
+// Accessing elements in the list
+myList.each { item ->
+    item.each { key, value ->
+        println("$key: $value")
+    }
+}
+```
+
+This `myList` variable is a list of maps where each map represents an item with the keys 'Fruit' or 'Veg' as described in your JSON-like structure. You can iterate through the list and access each element, then further iterate through each map to access its key-value pairs.
