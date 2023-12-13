@@ -1,0 +1,25 @@
+Certainly! You can store a map in a separate file by serializing it and saving it in a format that can be easily read back later. One common approach is using JSON for this purpose.
+
+Here's an example of saving a map to a JSON file:
+
+```groovy
+import groovy.json.JsonOutput
+import java.nio.file.*
+
+def myMap = [
+    key1: "value1",
+    key2: "value2",
+    key3: 42
+]
+
+// Convert the map to a JSON string
+def jsonString = new JsonOutput().toJson(myMap)
+
+// Define the file path
+def filePath = Paths.get("/path/to/your/file.json")
+
+// Write the JSON string to the file
+Files.write(filePath, jsonString.getBytes())
+```
+
+Replace `"/path/to/your/file.json"` with the actual path where you want to save the JSON file. This code converts the map to a JSON string using Groovy's `JsonOutput` class and writes it to the specified file using Java's NIO (`java.nio.file`).
