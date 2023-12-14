@@ -1,0 +1,11 @@
+def jsonData = [
+    [lastfourdigit: 2344, messageId: 1234567890, branchno: 55667788, timeStamp: '12:34:56:67']
+]
+
+def values = "lastfourdigit,branchno,timeStamp"
+def valueList = values.split(',')
+
+jsonData.each { data ->
+    def concatenatedValues = valueList.collect { key -> data[key] }.join(',')
+    println "Concatenated Values: $concatenatedValues"
+}
