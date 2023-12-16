@@ -1,46 +1,48 @@
-Understood! To align each attribute with the respective index in `concatValues`, here's the updated code:
+def concatValues = "12+45+678, aabbccdd, 34:23:5555"
+def concat = "concat,attribute1[function:trim function:Replace:+,) function:append:_] attribute2[function:Replace:+,123 function:append:-]"
 
-```groovy
-def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:-"
+def customReplace(value, oldStr, newStr) {
+    return value.replace(oldStr, newStr)
+}
 
-def concatValues = ["12245678", "aabbccdd", "34:23:5555"]
+def performActions(value, actions) {
+    actions.each { action ->
+        def actionParts = action.split(":")
+        def functionName = actionParts[0]
 
-def attributes = concat.findAll(/(?<=attribute\d+\[).*?(?=\sattribute|\s*\z)/)
-
-def concatResult = ""
-attributes.eachWithIndex { attribute, index ->
-    def functions = attribute.findAll(/(?<=function:)(\w+)/).collect { it }
-    def attributeIndex = index
-    def value = concatValues[attributeIndex]
-
-    functions.each { func ->
-        if (func == "trim") {
+        if (functionName == "trim") {
             value = value.trim()
-        } else if (func == "Replace") {
-            def replaceValues = attribute.findAll(/(?<=Replace:)([^,]+)/).collect { it }
-            if (replaceValues.size() >= 2) {
-                def from = replaceValues[0]
-                def to = replaceValues[1]
-                value = value.replace(from, to)
+        } else if (functionName == "Replace" && actionParts.size() == 2) {
+            def replaceValues = actionParts[1].split(",")
+            if (replaceValues.size() == 2) {
+                def oldStr = replaceValues[0].trim()
+                def newStr = replaceValues[1].trim()
+                value = customReplace(value, oldStr, newStr)
             }
-        } else if (func == "append") {
-            def appendSymbol = attribute.findAll(/(?<=append:)(\S+)/).collect { it }
-            if (appendSymbol.size() == 1) {
-                value += appendSymbol[0]
-            }
+        } else if (functionName == "append" && actionParts.size() == 2) {
+            def appendStr = actionParts[1]
+            value += appendStr
         }
     }
-    concatValues[attributeIndex] = value
-    if (concat.contains("concat")) {
-        concatResult += value
+    return value
+}
+
+def attributesMatcher = /(\w+)\[([^]]+)\]/
+
+def values = concatValues.split(", ")
+def matches = concat =~ attributesMatcher
+
+matches.each { match ->
+    def attributeName = match[1]
+    def actionsPart = match[2]
+    def actions = actionsPart.split(" function:")
+
+    def index = attributeName.replaceAll("[^0-9]", "").toInteger() - 1
+    
+    if (index >= 0 && index < values.size()) {
+        values[index] = performActions(values[index], actions)
     }
 }
 
-if (concat.contains("concat")) {
-    println "Concatenated result: $concatResult"
-} else {
-    println "Modified concatValues: $concatValues"
-}
-```
-
-This updated code now associates each attribute with the respective index in `concatValues` by utilizing the `eachWithIndex` method. It ensures that `attribute1` works on the 1st index of `concatValues`, `attribute2` on the 2nd index, and so on, applying the specified operations accordingly.
+def result = values.join(", ")
+println result
