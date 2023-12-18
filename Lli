@@ -1,7 +1,7 @@
-Apologies for the confusion earlier. Let's rectify the code to handle the 'Replace' and 'append' functions properly for each attribute:
+Certainly! To accommodate the updated `concat` string with proper closure for each attribute, here's the adjusted code:
 
 ```groovy
-def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:- attribute3[function:trim function:Replace::,."
+def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:-] attribute3[function:trim function:Replace::,.]"
 
 def concatValues = ["12245678", "aabbccdd", "34:23:5555"]
 
@@ -21,7 +21,7 @@ attributes.eachWithIndex { attribute, index ->
             if (replaceValues.size() >= 2) {
                 def from = replaceValues[0]
                 def to = replaceValues[1]
-                value = value.replaceAll(from, to)
+                value = value.replace(from, to)
             }
         } else if (func == "append") {
             def appendSymbol = attribute.findAll(/(?<=append:)(\S+)/).collect { it }
@@ -43,4 +43,4 @@ if (concat.contains("concat")) {
 }
 ```
 
-This revised code addresses the 'Replace' and 'append' functions, ensuring they perform the correct operations (`replaceAll` for 'Replace' and appending correctly) based on the specified conditions within each attribute.
+This revised code will process the operations for each attribute specified within the `concat` string and modify the `concatValues` accordingly. It checks for the presence of "concat" in the `concat` string and provides the concatenated result or the modified `concatValues` accordingly.
