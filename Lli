@@ -1,17 +1,18 @@
-Apologies for the confusion earlier. Let's modify the code to ensure each function is executed correctly for the respective attributes without redundancy:
+Understood! Let's adjust the code to use commas instead of spaces as separators for the `concatValues` string:
 
 ```groovy
 def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:-] attribute3[function:trim function:Replace::,.]"
 
-def concatValues = ["12245678", "aabbccdd", "34:23:5555"]
+def concatValues = "12245678,aabbccdd,34:23:5555"
 
 def attributes = concat.findAll(/(?<=attribute\d+\[).*?(?=\sattribute|\s*\]|$)/)
 
 def concatResult = ""
+def values = concatValues.split(',')
+
 attributes.eachWithIndex { attribute, index ->
     def functions = attribute.findAll(/(?<=function:)(\w+)/).collect { it }
-    def attributeIndex = index
-    def value = concatValues[attributeIndex]
+    def value = values[index]
 
     functions.each { func ->
         if (func == "trim") {
@@ -30,7 +31,7 @@ attributes.eachWithIndex { attribute, index ->
             }
         }
     }
-    concatValues[attributeIndex] = value
+    values[index] = value
     if (concat.contains("concat")) {
         concatResult += value
     }
@@ -39,8 +40,8 @@ attributes.eachWithIndex { attribute, index ->
 if (concat.contains("concat")) {
     println "Concatenated result: $concatResult"
 } else {
-    println "Modified concatValues: $concatValues"
+    println "Modified concatValues: ${values.join(',')}"
 }
 ```
 
-This adjusted code should now execute each function (`trim`, `Replace`, and `append`) only once for the respective attributes specified in the `concat` string, without redundantly applying the `trim` function multiple times.
+This code will treat the `concatValues` string as comma-separated values. It splits the values by commas, applies the specified operations based on the attributes in the `concat` string, and prints the modified values or the concatenated result if "concat" is present in the `concat` string.
