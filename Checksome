@@ -1,10 +1,16 @@
-Certainly! If I understand correctly, you want to split a string by commas, use the resulting values as keys to access a JSON object, gather their corresponding values, and then join those values together. Here's an example of how you might achieve this in Groovy:
+If some of the values in your JSON object are themselves maps, you can still access and manipulate them accordingly. Here's an example that incorporates maps within the JSON object and retrieves their values:
 
 ```groovy
 import groovy.json.JsonSlurper
 
-// Your JSON object
-def jsonObject = '{"key1": "value1", "key2": "value2", "key3": "value3"}'
+// Your JSON object with maps as values
+def jsonObject = '''
+{
+    "key1": "value1",
+    "key2": {"subkey1": "subvalue1", "subkey2": "subvalue2"},
+    "key3": "value3"
+}
+'''
 
 // String containing keys separated by commas
 def keysString = "key1,key2"
@@ -16,10 +22,17 @@ def json = new JsonSlurper().parseText(jsonObject)
 def keys = keysString.split(',')
 
 // Gathering corresponding values and joining them
-def joinedValues = keys.collect { json[it] }.join(', ')
+def joinedValues = keys.collect { key ->
+    def value = json[key]
+    if (value instanceof Map) {
+        value.collect { subKey, subValue -> subValue }.join(', ')
+    } else {
+        value
+    }
+}.join(', ')
 
 // Printing the joined values
 println(joinedValues)
 ```
 
-Replace `"key1,key2"` with your string containing the keys separated by commas and `jsonObject` with your actual JSON data. This code will split the keys by commas, retrieve their corresponding values from the JSON object, and then join these values together, separated by commas and a space. Adjust the structure or content according to your specific needs.
+This code handles a scenario where some values in the JSON object are maps. When accessing a map value, it collects the inner values and joins them together, maintaining the separation for non-map values, and then joins all values as before. Adjust as needed based on your actual JSON structure and the specific handling you require.
