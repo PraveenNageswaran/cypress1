@@ -1,0 +1,34 @@
+If you want to join only the split values obtained from the JSON object based on the keys provided, you can modify the code to achieve that:
+
+```groovy
+import groovy.json.JsonSlurper
+
+// Your JSON object with maps as values
+def jsonObject = '''
+{
+    "key1": "value1",
+    "key2": {"subkey1": "subvalue1", "subkey2": "subvalue2"},
+    "key3": "value3"
+}
+'''
+
+// String containing keys separated by commas
+def keysString = "key1,key2"
+
+// Parsing the JSON object
+def json = new JsonSlurper().parseText(jsonObject)
+
+// Splitting keys by commas and gathering corresponding values
+def values = keysString.split(',').collect { key ->
+    def value = json[key]
+    value instanceof Map ? value.values() : value
+}.flatten()
+
+// Joining the split values
+def joinedValues = values.join(', ')
+
+// Printing the joined values
+println(joinedValues)
+```
+
+This modified code retrieves the values corresponding to the keys from the JSON object, collects them into a list of values (`values`), flattens the list, and then joins these split values together, resulting in an output similar to `value1, subvalue1, subvalue2`, representing only the split values joined together without the keys or any additional characters. Adjust as necessary for your specific JSON structure and requirements.
