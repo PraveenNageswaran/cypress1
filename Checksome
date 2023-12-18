@@ -1,0 +1,25 @@
+Certainly! If I understand correctly, you want to split a string by commas, use the resulting values as keys to access a JSON object, gather their corresponding values, and then join those values together. Here's an example of how you might achieve this in Groovy:
+
+```groovy
+import groovy.json.JsonSlurper
+
+// Your JSON object
+def jsonObject = '{"key1": "value1", "key2": "value2", "key3": "value3"}'
+
+// String containing keys separated by commas
+def keysString = "key1,key2"
+
+// Parsing the JSON object
+def json = new JsonSlurper().parseText(jsonObject)
+
+// Splitting keys by commas
+def keys = keysString.split(',')
+
+// Gathering corresponding values and joining them
+def joinedValues = keys.collect { json[it] }.join(', ')
+
+// Printing the joined values
+println(joinedValues)
+```
+
+Replace `"key1,key2"` with your string containing the keys separated by commas and `jsonObject` with your actual JSON data. This code will split the keys by commas, retrieve their corresponding values from the JSON object, and then join these values together, separated by commas and a space. Adjust the structure or content according to your specific needs.
