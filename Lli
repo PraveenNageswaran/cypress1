@@ -1,4 +1,4 @@
-Understood! Let's adjust the code to use commas instead of spaces as separators for the `concatValues` string:
+I apologize for the oversight. Let's rectify the code to ensure the 'Replace' and 'append' functions execute correctly for each attribute:
 
 ```groovy
 def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:-] attribute3[function:trim function:Replace::,.]"
@@ -11,7 +11,7 @@ def concatResult = ""
 def values = concatValues.split(',')
 
 attributes.eachWithIndex { attribute, index ->
-    def functions = attribute.findAll(/(?<=function:)(\w+)/).collect { it }
+    def functions = attribute.findAll(/(?<=function:)(\w+)/).collect { it }.unique() // Getting unique functions
     def value = values[index]
 
     functions.each { func ->
@@ -22,7 +22,7 @@ attributes.eachWithIndex { attribute, index ->
             if (replaceValues.size() >= 2) {
                 def from = replaceValues[0]
                 def to = replaceValues[1]
-                value = value.replace(from, to)
+                value = value.replaceAll(from, to)
             }
         } else if (func == "append") {
             def appendSymbol = attribute.findAll(/(?<=append:)(\S+)/).collect { it }
@@ -44,4 +44,4 @@ if (concat.contains("concat")) {
 }
 ```
 
-This code will treat the `concatValues` string as comma-separated values. It splits the values by commas, applies the specified operations based on the attributes in the `concat` string, and prints the modified values or the concatenated result if "concat" is present in the `concat` string.
+This revised code should correctly execute the 'trim', 'Replace', and 'append' functions for each attribute based on the specified conditions in the `concat` string, modifying the `values` accordingly or concatenating the results if "concat" is present in the `concat` string.
