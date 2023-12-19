@@ -1,1 +1,7 @@
-Replace:.*?(?=\]|  |[^,\s]*),\s*([^,\s]+)
+Apologies for the confusion. Let's refine the pattern further to ensure it stops just before encountering `]`, a double space, or any other string without including it:
+
+```regex
+Replace:(?:.(?![\], ]))*?,\s*(.*)
+```
+
+This pattern should skip characters between "Replace:" and just before encountering `]`, a double space (`  `), or any other string, and then capture all characters after the comma, including any leading whitespace after the comma.
