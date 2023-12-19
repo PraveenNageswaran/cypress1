@@ -1,7 +1,40 @@
-I see, it seems the pattern needs further refinement. To capture characters after the comma and stop just before encountering `]`, a double space, or any other string specifically excluding these conditions, try this pattern:
+Understood. Let's adjust the code to handle the given `concat` string and `concatValues`.
 
-```regex
-Replace:(?:[^], ]|](?![^\[\]]*),|\s{2,}(?![^ ])|[^,])*?,\s*(.*)
+```groovy
+def concat = "attribute1[function:trim function:Replace:2,_  function:append:_] attribute2[function:Replace:aa,: append:-]"
+
+def concatValues = "12245678,aabbccdd,34:23:5555"
+
+def attributes = concat.findAll(/(?<=attribute\d+\[).*?(?=\sattribute|\s*\z)/)
+
+def concatResult = ""
+def splitValues = concatValues.split(',')
+
+attributes.eachWithIndex { attribute, index ->
+    def functions = attribute.findAll(/(?<=function:)(\w+(\S+)?)/).collect { it }
+    def attributeIndex = index
+    def value = splitValues[attributeIndex]
+
+    functions.each { func ->
+        if (func.startsWith("trim")) {
+            value = value.trim()
+        } else if (func.startsWith("Replace")) {
+            def replaceValues = func.tokenize(':').findAll { it.startsWith("Replace:") }.collect { it.split(':')[1..-1].join(':') }
+            if (!replaceValues.isEmpty() && replaceValues.size() >= 2) {
+                def from = replaceValues[0]
+                def to = replaceValues[1]
+                value = value.replace(from, to)
+            }
+        } else if (func.startsWith("append")) {
+            def appendSymbol = func.split(':').last().trim()
+            value += appendSymbol
+        }
+    }
+    splitValues[attributeIndex] = value
+    concatResult += value
+}
+
+println "Concatenated result: $concatResult"
 ```
 
-This pattern aims to capture characters after the comma, excluding occurrences of `]`, a double space (`  `), or any other string specifically by considering these conditions and stopping just before encountering them.
+This adjusted code takes into account the given `concat` string and `concatValues`. It parses the attributes and their associated functions correctly, applying `trim`, `Replace`, and `append` functions to modify the `concatValues`. Finally, it outputs the concatenated result as per the modifications made to the `concatValues` based on the specified operations.
