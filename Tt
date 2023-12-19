@@ -1,7 +1,13 @@
 Apologies for the confusion. Let's refine the pattern further to ensure it stops just before encountering `]`, a double space, or any other string without including it:
 
 ```regex
-Replace:(?:.(?![\], ]))*?,\s*(.*)
+Replace:(?:.(?![\], Understood! If you want to capture characters after the comma and stop just before encountering `]`, a double space, or any other string, you can use this adjusted pattern:
+
+```regex
+Replace:(?:[^], ]|(?=]|\s\s|[^,]))*?,\s*(.*)
+```
+
+This pattern will capture characters after the comma and stop just before encountering `]`, a double space (`  `), or any other string while excluding them from the captured text.))*?,\s*(.*)
 ```
 
 This pattern should skip characters between "Replace:" and just before encountering `]`, a double space (`  `), or any other string, and then capture all characters after the comma, including any leading whitespace after the comma.
