@@ -1,48 +1,7 @@
-Certainly! If `attribute2` and `attribute3` should be enclosed within square brackets, here's the adjusted code:
+Certainly! To ignore characters between "Replace:" and either `]`, a double space, or any other string until right before it (not including it) and then capture all characters after the comma, you can use this pattern:
 
-```groovy
-def concat = "concat,attribute1[function:trim function:Replace:,_ append:_] attribute2[function:Replace:123,: append:-] attribute3[function:trim function:Replace::,]"
-
-def concatValues = "12245678,aabbccdd,34:23:5555"
-
-def attributes = concat.findAll(/(?<=attribute\d+\[).*?(?=\sattribute|\s*\z)/)
-
-def concatResult = ""
-def splitValues = concatValues.split(',')
-
-attributes.eachWithIndex { attribute, index ->
-    def functions = attribute.findAll(/(?<=function:)(\w+)/).collect { it }
-    def attributeIndex = index
-    def value = splitValues[attributeIndex]
-
-    functions.each { func ->
-        if (func == "trim") {
-            value = value.trim()
-        } else if (func == "Replace") {
-            def replaceValues = attribute.tokenize('function:')[1].findAll { it.startsWith("Replace:") }.collect { it.split(':')[1..-1].join(':') }
-            if (!replaceValues.isEmpty() && replaceValues.size() >= 2) {
-                def from = replaceValues[0]
-                def to = replaceValues[1]
-                value = value.replace(from, to)
-            }
-        } else if (func == "append") {
-            def appendSymbol = attribute.findAll(/(?<=append:)(\S+)/).collect { it.split(':')[1] }
-            if (appendSymbol.size() == 1) {
-                value += appendSymbol[0]
-            }
-        }
-    }
-    splitValues[attributeIndex] = value
-    if (concat.contains("concat")) {
-        concatResult += value
-    }
-}
-
-if (concat.contains("concat")) {
-    println "Concatenated result: $concatResult"
-} else {
-    println "Modified concatValues: ${splitValues.join(',')}"
-}
+```regex
+Replace:.*?(?=]|  |[^,]*),\s*(.*)
 ```
 
-This revised code accounts for enclosing `attribute2` and `attribute3` within square brackets as specified. It performs operations based on the functions listed for each attribute and outputs either the concatenated result or the modified `concatValues` based on the presence of "concat" in the `concat` string.
+This pattern will ignore everything from "Replace:" until it reaches `]`, a double space (`  `), or any other string (denoted by `[^,]*`) just before the comma (but not including it). Then it captures all characters after the comma, including any leading whitespace after the comma.
