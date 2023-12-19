@@ -1,7 +1,1 @@
-Certainly! To ignore characters between "Replace:" and either `]`, a double space, or any other string until right before it (not including it) and then capture all characters after the comma, you can use this pattern:
-
-```regex
-Replace:.*?(?=]|  |[^,]*),\s*(.*)
-```
-
-This pattern will ignore everything from "Replace:" until it reaches `]`, a double space (`  `), or any other string (denoted by `[^,]*`) just before the comma (but not including it). Then it captures all characters after the comma, including any leading whitespace after the comma.
+Replace:.*?(?=\]|  |[^,\s]*),\s*([^,\s]+)
