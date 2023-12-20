@@ -1,0 +1,53 @@
+Certainly! To implement substring functionality within `attribute1`, you can add a `substring` function inside `attribute1`. Here's an updated code:
+
+```groovy
+def concat = "attribute1[function:trim function:Replace:2,_  function:append:_  function:substring:2,5] attribute2[function:Replace:aa,: append:-]"
+
+def concatValues = "12245678,aabbccdd,34:23:5555"
+
+def attributes = concat.findAll(/(?<=attribute\d+\[).*?(?=\sattribute|\s*\z)/)
+
+def concatResult = ""
+def splitValues = concatValues.split(',')
+
+if (concat.contains("concat")) {
+    splitValues.each { value ->
+        concatResult += value
+    }
+} else {
+    attributes.eachWithIndex { attribute, index ->
+        def functions = attribute.findAll(/(?<=function:)(\w+(\S+)?):?(\S+)?/).collect { it }
+        def attributeIndex = index
+        def value = splitValues[attributeIndex]
+
+        functions.each { func ->
+            if (func.startsWith("trim")) {
+                value = value.trim()
+            } else if (func.startsWith("Replace")) {
+                def replaceValues = func.tokenize(':').findAll { it.startsWith("Replace:") }.collect { it.split(':')[1..-1].join(':') }
+                if (!replaceValues.isEmpty() && replaceValues.size() >= 2) {
+                    def from = replaceValues[0]
+                    def to = replaceValues[1].replaceAll(/Replace:[^,]+,([^ \]]+)/, '$1')
+                    value = value.replace(from, to)
+                }
+            } else if (func.startsWith("append")) {
+                def appendSymbol = func.split(':').last().trim()
+                value += appendSymbol
+            } else if (func.startsWith("substring")) {
+                def params = func.split(':').findAll { it.startsWith("substring:") }.collect { it.split(':')[1..-1].join(':') }
+                if (!params.isEmpty() && params.size() >= 2) {
+                    def startIndex = Integer.parseInt(params[0])
+                    def endIndex = Integer.parseInt(params[1])
+                    value = value.substring(startIndex, endIndex)
+                }
+            }
+        }
+        splitValues[attributeIndex] = value
+        concatResult += value
+    }
+}
+
+println "Result: $concatResult"
+```
+
+This code incorporates the `substring` function inside `attribute1`. It extracts the start and end indices specified in the `substring` function arguments and applies the `substring` operation to the corresponding `concatValues` element.
