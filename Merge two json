@@ -1,0 +1,25 @@
+In Groovy, you can achieve this by reading the contents of both JSON files, parsing them, merging the arrays, and then writing the result back to a new file. Here's an example:
+
+```groovy
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// Read the contents of both JSON files
+def file1Contents = new File('file1.json').text
+def file2Contents = new File('file2.json').text
+
+// Parse the JSON data from both files
+def array1 = new JsonSlurper().parseText(file1Contents)
+def array2 = new JsonSlurper().parseText(file2Contents)
+
+// Merge the arrays
+def mergedArray = array1 + array2
+
+// Write the merged array back to a new file
+def mergedFileContent = JsonOutput.prettyPrint(JsonOutput.toJson(mergedArray))
+new File('mergedFile.json').text = mergedFileContent
+
+println 'Files merged and saved as mergedFile.json'
+```
+
+Replace `'file1.json'`, `'file2.json'`, and `'mergedFile.json'` with the actual file paths you have. After running this script, you'll get a new file named `mergedFile.json` containing the merged array of objects.
