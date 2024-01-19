@@ -1,0 +1,30 @@
+I apologize for the inconvenience. Let's use a different approach to explicitly filter files. Here's an updated version:
+
+```groovy
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// List of JSON files starting with "messages_"
+def fileDir = new File('.')
+def fileArray = fileDir.listFiles().findAll { file ->
+    file.name.startsWith("messages_") && file.name.endsWith(".json")
+}
+
+// Merge all JSON files into a single list
+def mergedData = []
+fileArray.each { file ->
+    def jsonData = new JsonSlurper().parse(file)
+    mergedData.addAll(jsonData)
+}
+
+// Write the merged data to raw.json
+def rawJsonFile = new File('raw.json')
+rawJsonFile.text = JsonOutput.toJson(mergedData)
+
+// Delete the existing files
+fileArray.each { file ->
+    file.delete()
+}
+```
+
+This version uses `findAll` to explicitly filter files based on the given conditions. Please try running this updated script, and let me know if it resolves the issue.
