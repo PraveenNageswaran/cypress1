@@ -1,44 +1,50 @@
-I see the issue. It appears that the `toMap()` method might not be directly available for the data retrieved from the JMeter variables as it would be for a standard `List` of `Map` instances. We can work around this by constructing the list of maps by iterating through the data retrieved from the JMeter variables.
+To achieve this in JMeter, you can use the JDBC Request sampler to fetch data from the two Oracle tables, and then use the JSR223 Sampler with Groovy to compare the data and print the mismatched rows. Here's a step-by-step guide to accomplishing this:
 
-Here's an updated example using iteration to construct the list of maps from the retrieved data:
+1. Configuring JDBC Connection:
+   - Add a JDBC Connection Configuration element to your test plan.
+   - Configure the necessary settings for connecting to your Oracle database (e.g., URL, driver class, username, password).
+
+2. Adding JDBC Request samplers:
+   - Add two JDBC Request samplers to your test plan, one for each table (TableA and TableB).
+   - Configure each JDBC Request sampler to execute a query that retrieves the data from the respective tables.
+   - For example, the SQL query for fetching data from TableA might look like: `SELECT * FROM TableA`
+
+3. Adding JSR223 Sampler for comparison:
+   - Add a JSR223 Sampler to your test plan after the JDBC Request samplers.
+   - Choose "groovy" as the scripting language for the JSR223 sampler.
+
+4. Writing Groovy script to compare and print mismatched rows:
+   - Inside the JSR223 Sampler, you can use Groovy to compare the data fetched from the two tables.
+   - The script can iterate through the result sets obtained from the JDBC Request samplers and compare the rows to identify any mismatches.
+   - Here's a sample Groovy script that demonstrates the comparison:
 
 ```groovy
-// Retrieve the results from the JDBC Request samplers
-def employeesData = vars.getObject("employees_result");
-def tempEmployeesData = vars.getObject("temp_employees_result");
+// Retrieve the result sets from the JDBC Request samplers
+def resultTableA = vars.getObject("resultset_1")  // Assuming the result set from TableA is stored in "resultset_1"
+def resultTableB = vars.getObject("resultset_2")  // Assuming the result set from TableB is stored in "resultset_2"
 
-// Convert the result sets to lists of maps
-def employeesList = resultSetToList(employeesData)
-def tempEmployeesList = resultSetToList(tempEmployeesData)
+// Initialize lists to store mismatched rows
+def mismatchedRowsInA = []
+def mismatchedRowsInB = []
 
-// Define a method to convert ResultSet data to a list of maps
-List<Map<String, Object>> resultSetToList(Object resultSetData) {
-    def rows = []
-    for (def row : resultSetData) {
-        def rowData = [:]
-        for (def columnName : row.keySet()) {
-            rowData.put(columnName, row.get(columnName))
-        }
-        rows.add(rowData)
+// Compare the rows and identify the mismatches
+while (resultTableA.next() && resultTableB.next()) {
+    def idA = resultTableA.getString("id")  // Assuming "id" is the primary key column
+    def idB = resultTableB.getString("id")  // Assuming "id" is the primary key column
+
+    if (idA != idB) {
+        mismatchedRowsInA.add(idA)
+        mismatchedRowsInB.add(idB)
     }
-    return rows
 }
 
-// Compare the data and print the results
-def matchingRows = employeesList.intersect(tempEmployeesList)
-def mismatchingRows = employeesList - tempEmployeesList + tempEmployeesList - employeesList
-
-log.info("Matching Rows:")
-matchingRows.each { row ->
-    log.info(row)
-}
-
-log.info("Mismatching Rows:")
-mismatchingRows.each { row ->
-    log.info(row)
-}
+// Print the mismatched rows
+log.info("Mismatched rows in TableA: ${mismatchedRowsInA}")
+log.info("Mismatched rows in TableB: ${mismatchedRowsInB}")
 ```
 
-In this script, I've defined the `resultSetToList` method to iterate through the data retrieved from the JMeter variables and construct a list of maps. This list of maps is then used for comparison and logging of matching and mismatching rows.
+5. Validating and running the test plan:
+   - After adding the JSR223 Sampler with the Groovy script, validate the test plan configuration to ensure that there are no errors.
+   - Run the test plan to execute the JDBC requests, perform the data comparison, and print the mismatched rows.
 
-I understand that the process of retrieving and manipulating the result data from JMeter variables in Groovy scripts can be challenging. Please let me know if you encounter any further issues or if there's anything else you need assistance with.
+Please make sure to update the script according to the actual column names and data types in your tables. Additionally, be cautious with memory usage when working with large result sets, as loading large datasets into memory could affect JMeter's performance.
