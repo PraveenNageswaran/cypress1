@@ -13,7 +13,7 @@ resultSetA.each { rowA ->
         }
     }
     if (!matchFound) {
-        mismatchedRows.add(rowA)
+        mismatchedRows.add(rowA.collect { key, value -> "$key: $value" }.join(', '))
     }
 }
 
