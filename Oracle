@@ -1,8 +1,22 @@
-def tableARows = vars.get("TableAResult").split("\n").toList()
-def tableBRows = vars.get("TableBResult").split("\n").toList()
+// Extract data from JDBC Response Samplers
+def tableARows = vars.getObject("TableAResult")
+def tableBRows = vars.getObject("TableBResult")
 
-def matchedRows = tableARows.intersect(tableBRows)
-def mismatchedRows = (tableARows - matchedRows) + (tableBRows - matchedRows)
+// Ensure the extracted data is not null
+if (tableARows && tableBRows) {
+    // Convert the extracted data to a list of strings
+    def tableAList = tableARows.collect { row -> row.toString() }
+    def tableBList = tableBRows.collect { row -> row.toString() }
 
-log.info("Matched Rows: ${matchedRows}")
-log.info("Mismatched Rows: ${mismatchedRows}")
+    // Compare rows
+    def matchedRows = tableAList.intersect(tableBList)
+    def mismatchedRowsA = tableAList.minus(matchedRows)
+    def mismatchedRowsB = tableBList.minus(matchedRows)
+
+    // Print the results
+    log.info("Matched Rows: " + matchedRows)
+    log.info("Mismatched Rows in Table A: " + mismatchedRowsA)
+    log.info("Mismatched Rows in Table B: " + mismatchedRowsB)
+} else {
+    log.error("Failed to retrieve data from JDBC Response Samplers")
+}
