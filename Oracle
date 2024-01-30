@@ -1,17 +1,8 @@
-// Retrieve data from variables
-def tableAData = vars.getObject("tableAData");
-def tableBData = vars.getObject("tableBData");
+def tableARows = vars.get("TableAResult").split("\n").toList()
+def tableBRows = vars.get("TableBResult").split("\n").toList()
 
-// Compare the data and print mismatched rows
-log.info("Mismatched Rows:");
-for (def rowA : tableAData) {
-    if (!tableBData.contains(rowA)) {
-        log.info("Table A: ${rowA}");
-    }
-}
+def matchedRows = tableARows.intersect(tableBRows)
+def mismatchedRows = (tableARows - matchedRows) + (tableBRows - matchedRows)
 
-for (def rowB : tableBData) {
-    if (!tableAData.contains(rowB)) {
-        log.info("Table B: ${rowB}");
-    }
-}
+log.info("Matched Rows: ${matchedRows}")
+log.info("Mismatched Rows: ${mismatchedRows}")
