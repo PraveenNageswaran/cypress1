@@ -1,40 +1,58 @@
-To achieve this in JMeter, you can use the JDBC Request sampler to fetch data from the two Oracle tables, and then use the JSR223 Sampler with Groovy to compare the data and print the mismatched rows. Here's a step-by-step guide to accomplishing this:
-
-1. Configuring JDBC Connection:
-   - Add a JDBC Connection Configuration element to your test plan.
-   - Configure the necessary settings for connecting to your Oracle database (e.g., URL, driver class, username, password).
-
-2. Adding JDBC Request samplers:
-   - Add two JDBC Request samplers to your test plan, one for each table (TableA and TableB).
-   - Configure each JDBC Request sampler to execute a query that retrieves the data from the respective tables.
-   - For example, the SQL query for fetching data from TableA might look like: `SELECT * FROM TableA`
-
-3. Adding JSR223 Sampler for comparison:
-   - Add a JSR223 Sampler to your test plan after the JDBC Request samplers.
-   - Choose "groovy" as the scripting language for the JSR223 sampler.
-
-4. Writing Groovy script to compare and print mismatched rows:
-   - Inside the JSR223 Sampler, you can use Groovy to compare the data fetched from the two tables.
-   - The script can iterate through the result sets obtained from the JDBC Request samplers and compare the rows to identify any mismatches.
-   - Here's a sample Groovy script that demonstrates the comparison:
+Certainly! You can leverage the `getObject` method to retrieve the result sets from the JDBC Request samplers. Here's the revised script that uses `getObject` to fetch the result sets and compares the data and prints the mismatched rows:
 
 ```groovy
-// Retrieve the result sets from the JDBC Request samplers
-def resultTableA = vars.getObject("resultset_1")  // Assuming the result set from TableA is stored in "resultset_1"
-def resultTableB = vars.getObject("resultset_2")  // Assuming the result set from TableB is stored in "resultset_2"
+// Retrieve the result sets from the JDBC Request samplers for Table A and Table B
+def tableAResultSet = vars.getObject("tableAResultSet")
+def tableBResultSet = vars.getObject("tableBResultSet")
 
 // Initialize lists to store mismatched rows
 def mismatchedRowsInA = []
 def mismatchedRowsInB = []
 
-// Compare the rows and identify the mismatches
-while (resultTableA.next() && resultTableB.next()) {
-    def idA = resultTableA.getString("id")  // Assuming "id" is the primary key column
-    def idB = resultTableB.getString("id")  // Assuming "id" is the primary key column
+// Convert the result sets to lists for easier comparison and iteration
+def listA = []
+def listB = []
+while (tableAResultSet.next()) {
+    def rowData = [:]
+    for (i in 1..tableAResultSet.getMetaData().getColumnCount()) {
+        def columnName = tableAResultSet.getMetaData().getColumnName(i)
+        rowData.put(columnName, tableAResultSet.getObject(columnName))
+    }
+    listA.add(rowData)
+}
+while (tableBResultSet.next()) {
+    def rowData = [:]
+    for (i in 1..tableBResultSet.getMetaData().getColumnCount()) {
+        def columnName = tableBResultSet.getMetaData().getColumnName(i)
+        rowData.put(columnName, tableBResultSet.getObject(columnName))
+    }
+    listB.add(rowData)
+}
 
-    if (idA != idB) {
-        mismatchedRowsInA.add(idA)
-        mismatchedRowsInB.add(idB)
+// Compare the data from Table A and Table B
+for (itemA in listA) {
+    def found = false
+    for (itemB in listB) {
+        if (itemA.equals(itemB)) {
+            found = true
+            break
+        }
+    }
+    if (!found) {
+        mismatchedRowsInA.add(itemA)
+    }
+}
+
+for (itemB in listB) {
+    def found = false
+    for (itemA in listA) {
+        if (itemB.equals(itemA)) {
+            found = true
+            break
+        }
+    }
+    if (!found) {
+        mismatchedRowsInB.add(itemB)
     }
 }
 
@@ -43,8 +61,8 @@ log.info("Mismatched rows in TableA: ${mismatchedRowsInA}")
 log.info("Mismatched rows in TableB: ${mismatchedRowsInB}")
 ```
 
-5. Validating and running the test plan:
-   - After adding the JSR223 Sampler with the Groovy script, validate the test plan configuration to ensure that there are no errors.
-   - Run the test plan to execute the JDBC requests, perform the data comparison, and print the mismatched rows.
+In this revised script:
+- We've used `vars.getObject` to retrieve the result sets for Table A and Table B.
+- The rest of the script remains the same, as we convert the result sets to lists for comparison and then identify and log the mismatched rows for Table A and Table B.
 
-Please make sure to update the script according to the actual column names and data types in your tables. Additionally, be cautious with memory usage when working with large result sets, as loading large datasets into memory could affect JMeter's performance.
+After incorporating this script into the JSR223 Sampler and ensuring the JDBC Request samplers are configured to store the result sets in variables named `tableAResultSet` and `tableBResultSet`, you should be able to compare the data from the two tables and print the mismatched rows as intended.
