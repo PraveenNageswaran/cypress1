@@ -1,21 +1,32 @@
-You are absolutely right, and I apologize for the oversight. Since you have already provided the queries in the JDBC Request elements to fetch data from the tables, there is no need to rewrite the query in the Groovy script. Instead, you can directly access the results of the queries executed by the JDBC Request elements.
+I see the issue. It appears that the `toMap()` method might not be directly available for the data retrieved from the JMeter variables as it would be for a standard `List` of `Map` instances. We can work around this by constructing the list of maps by iterating through the data retrieved from the JMeter variables.
 
-The Groovy script in the JSR223 Sampler can focus on comparing the results obtained from the JDBC Request elements and logging the matching and mismatching rows.
-
-Here's an example of a simplified Groovy script for comparing the results obtained from the JDBC Request elements:
+Here's an updated example using iteration to construct the list of maps from the retrieved data:
 
 ```groovy
 // Retrieve the results from the JDBC Request samplers
-def employeesResultSet = vars.getObject("employees_result")
-def tempEmployeesResultSet = vars.getObject("temp_employees_result")
+def employeesData = vars.getObject("employees_result");
+def tempEmployeesData = vars.getObject("temp_employees_result");
 
 // Convert the result sets to lists of maps
-def employeesData = convertResultSetToList(employeesResultSet)
-def tempEmployeesData = convertResultSetToList(tempEmployeesResultSet)
+def employeesList = resultSetToList(employeesData)
+def tempEmployeesList = resultSetToList(tempEmployeesData)
+
+// Define a method to convert ResultSet data to a list of maps
+List<Map<String, Object>> resultSetToList(Object resultSetData) {
+    def rows = []
+    for (def row : resultSetData) {
+        def rowData = [:]
+        for (def columnName : row.keySet()) {
+            rowData.put(columnName, row.get(columnName))
+        }
+        rows.add(rowData)
+    }
+    return rows
+}
 
 // Compare the data and print the results
-def matchingRows = employeesData.intersect(tempEmployeesData)
-def mismatchingRows = employeesData - tempEmployeesData + tempEmployeesData - employeesData
+def matchingRows = employeesList.intersect(tempEmployeesList)
+def mismatchingRows = employeesList - tempEmployeesList + tempEmployeesList - employeesList
 
 log.info("Matching Rows:")
 matchingRows.each { row ->
@@ -26,24 +37,8 @@ log.info("Mismatching Rows:")
 mismatchingRows.each { row ->
     log.info(row)
 }
-
-List<Map<String, Object>> convertResultSetToList(ResultSet resultSet) {
-    def rows = []
-    while (resultSet.next()) {
-        def row = [:]
-        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-            String columnName = resultSet.getMetaData().getColumnName(i)
-            Object columnValue = resultSet.getObject(i)
-            row.put(columnName, columnValue)
-        }
-        rows.add(row)
-    }
-    return rows
-}
 ```
 
-In this script, we retrieve the result sets from the JDBC Request samplers using `vars.getObject()` to access the results stored in JMeter variables. We then convert the result sets to lists of maps using the `convertResultSetToList` method, which is responsible for iterating through the result set and constructing a list of maps where each map represents a row in the result set.
+In this script, I've defined the `resultSetToList` method to iterate through the data retrieved from the JMeter variables and construct a list of maps. This list of maps is then used for comparison and logging of matching and mismatching rows.
 
-The comparison and logging of the matching and mismatching rows can be performed using the retrieved data without the need to re-execute the queries.
-
-I hope this clarifies the use of the query results obtained from the JDBC Request elements in the Groovy script. Please feel free to reach out if you have further questions or need additional assistance.
+I understand that the process of retrieving and manipulating the result data from JMeter variables in Groovy scripts can be challenging. Please let me know if you encounter any further issues or if there's anything else you need assistance with.
