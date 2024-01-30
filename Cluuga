@@ -1,0 +1,21 @@
+// Assuming resultSetA and resultSetB are the result sets from Table A and Table B queries
+def resultSetA = vars.getObject("ResultSet_A")
+def resultSetB = vars.getObject("ResultSet_B")
+
+// Assuming the structure of both result sets is the same and they have a primary key column named 'id'
+def primaryKeyColumn = "id"
+
+// Compare the result sets based on the primary key
+def mismatchedRows = []
+resultSetA.each { rowA ->
+    def matchingRowB = resultSetB.find { it[primaryKeyColumn] == rowA[primaryKeyColumn] }
+    if (matchingRowB == null) {
+        mismatchedRows.add(rowA)
+    }
+}
+
+// Print the mismatched rows
+log.info("Mismatched Rows:")
+mismatchedRows.each { row ->
+    log.info("Table A: ${row}")
+}
