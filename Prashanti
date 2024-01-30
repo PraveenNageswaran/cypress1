@@ -1,0 +1,49 @@
+You are absolutely right, and I apologize for the oversight. Since you have already provided the queries in the JDBC Request elements to fetch data from the tables, there is no need to rewrite the query in the Groovy script. Instead, you can directly access the results of the queries executed by the JDBC Request elements.
+
+The Groovy script in the JSR223 Sampler can focus on comparing the results obtained from the JDBC Request elements and logging the matching and mismatching rows.
+
+Here's an example of a simplified Groovy script for comparing the results obtained from the JDBC Request elements:
+
+```groovy
+// Retrieve the results from the JDBC Request samplers
+def employeesResultSet = vars.getObject("employees_result")
+def tempEmployeesResultSet = vars.getObject("temp_employees_result")
+
+// Convert the result sets to lists of maps
+def employeesData = convertResultSetToList(employeesResultSet)
+def tempEmployeesData = convertResultSetToList(tempEmployeesResultSet)
+
+// Compare the data and print the results
+def matchingRows = employeesData.intersect(tempEmployeesData)
+def mismatchingRows = employeesData - tempEmployeesData + tempEmployeesData - employeesData
+
+log.info("Matching Rows:")
+matchingRows.each { row ->
+    log.info(row)
+}
+
+log.info("Mismatching Rows:")
+mismatchingRows.each { row ->
+    log.info(row)
+}
+
+List<Map<String, Object>> convertResultSetToList(ResultSet resultSet) {
+    def rows = []
+    while (resultSet.next()) {
+        def row = [:]
+        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+            String columnName = resultSet.getMetaData().getColumnName(i)
+            Object columnValue = resultSet.getObject(i)
+            row.put(columnName, columnValue)
+        }
+        rows.add(row)
+    }
+    return rows
+}
+```
+
+In this script, we retrieve the result sets from the JDBC Request samplers using `vars.getObject()` to access the results stored in JMeter variables. We then convert the result sets to lists of maps using the `convertResultSetToList` method, which is responsible for iterating through the result set and constructing a list of maps where each map represents a row in the result set.
+
+The comparison and logging of the matching and mismatching rows can be performed using the retrieved data without the need to re-execute the queries.
+
+I hope this clarifies the use of the query results obtained from the JDBC Request elements in the Groovy script. Please feel free to reach out if you have further questions or need additional assistance.
