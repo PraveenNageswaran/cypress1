@@ -1,0 +1,17 @@
+// Retrieve data from variables
+def tableAData = vars.getObject("tableAData");
+def tableBData = vars.getObject("tableBData");
+
+// Compare the data and print mismatched rows
+log.info("Mismatched Rows:");
+for (def rowA : tableAData) {
+    if (!tableBData.contains(rowA)) {
+        log.info("Table A: ${rowA}");
+    }
+}
+
+for (def rowB : tableBData) {
+    if (!tableAData.contains(rowB)) {
+        log.info("Table B: ${rowB}");
+    }
+}
