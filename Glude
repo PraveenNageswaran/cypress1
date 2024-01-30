@@ -1,0 +1,22 @@
+import groovy.sql.Sql
+
+// Establish connections to both tables
+def tableAConnection = new Sql(vars.get("TableAConnection"))
+def tableBConnection = new Sql(vars.get("TableBConnection"))
+
+// Fetch results from variables
+def tableARows = vars.getObject("tableAResults")
+def tableBRows = vars.getObject("tableBResults")
+
+// Compare rows and print mismatched ones
+def mismatchedRows = []
+tableARows.each { rowA ->
+    if (!tableBRows.any { rowB -> rowA.equals(rowB) }) {
+        mismatchedRows << rowA
+        log.info("Mismatched row in Table A: ${rowA}")
+    }
+}
+
+// Close connections
+tableAConnection.close()
+tableBConnection.close()
