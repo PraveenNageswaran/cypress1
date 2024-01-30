@@ -5,8 +5,8 @@ def tableBRows = vars.getObject("TableBResult")
 // Ensure the extracted data is not null
 if (tableARows && tableBRows) {
     // Convert the extracted data to a list of strings
-    def tableAList = tableARows.collect { row -> row.toString() }
-    def tableBList = tableBRows.collect { row -> row.toString() }
+    def tableAList = tableARows.collect { row -> row.getValue().toString() }
+    def tableBList = tableBRows.collect { row -> row.getValue().toString() }
 
     // Compare rows
     def matchedRows = tableAList.intersect(tableBList)
