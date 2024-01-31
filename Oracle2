@@ -1,22 +1,22 @@
 def tableAResultSet = vars.getObject("tableAResultSet")
 def tableBResultSet = vars.getObject("tableBResultSet")
 
-def metaDataA = tableAResultSet.getMetaData()
-def metaDataB = tableBResultSet.getMetaData()
+def columnCountA = tableAResultSet.getMetaData().getColumnCount()
+def columnCountB = tableBResultSet.getMetaData().getColumnCount()
 
-def columnsCountA = metaDataA.getColumnCount()
-def columnsCountB = metaDataB.getColumnCount()
+def columnsA = (1..columnCountA).collect { tableAResultSet.getMetaData().getColumnName(it) }
+def columnsB = (1..columnCountB).collect { tableBResultSet.getMetaData().getColumnName(it) }
 
 while (tableAResultSet.next() && tableBResultSet.next()) {
     def match = true
 
-    for (int i = 1; i <= columnsCountA; i++) {
+    for (int i = 1; i <= columnCountA; i++) {
         def valueA = tableAResultSet.getString(i)
         def valueB = tableBResultSet.getString(i)
 
         if (!valueA.equals(valueB)) {
             match = false
-            log.info("Unmatched: Column ${metaDataA.getColumnName(i)} - Table A: $valueA, Table B: $valueB")
+            log.info("Unmatched: Column ${columnsA[i-1]} - Table A: $valueA, Table B: $valueB")
             break
         }
     }
