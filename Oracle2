@@ -1,38 +1,22 @@
-def tableA = vars.getObject("result_set_tableA")
-def tableB = vars.getObject("result_set_tableB")
+def tableAResultSet = vars.getObject("tableAResultSet")
+def tableBResultSet = vars.getObject("tableBResultSet")
 
-// Function to find mismatched columns and values for a row
-def findMismatchedColumns(rowA, rowB) {
-    def mismatchedColumns = [:]
-    
-    rowA.each { colName, valueA ->
-        def valueB = rowB[colName]
-        if (valueA != valueB) {
-            mismatchedColumns[colName] = [valueA, valueB]
-        }
+while (tableAResultSet.next() && tableBResultSet.next()) {
+    def rowA = tableAResultSet.getString(1) // Adjust column index accordingly
+    def rowB = tableBResultSet.getString(1) // Adjust column index accordingly
+
+    if (rowA.equals(rowB)) {
+        log.info("Matched: $rowA")
+    } else {
+        log.info("Unmatched: Table A - $rowA, Table B - $rowB")
     }
-
-    mismatchedColumns
 }
 
-// Compare the two tables
-def matchedRows = tableA.intersect(tableB)
-def mismatchedRowsInA = tableA - matchedRows
-def mismatchedRowsInB = tableB - matchedRows
-
-// Print the mismatched columns and values
-log.info("Mismatched Rows in Table A:")
-mismatchedRowsInA.each { rowA ->
-    def rowB = tableB.find { it.id == rowA.id } // Adjust the condition based on your primary key or unique identifier
-    def mismatchedColumns = findMismatchedColumns(rowA, rowB)
-    
-    log.info("Table A Row: ${rowA}, Mismatched Columns: ${mismatchedColumns}")
+// Check if any additional rows exist in either table
+while (tableAResultSet.next()) {
+    log.info("Unmatched: Table A - " + tableAResultSet.getString(1))
 }
 
-log.info("Mismatched Rows in Table B:")
-mismatchedRowsInB.each { rowB ->
-    def rowA = tableA.find { it.id == rowB.id } // Adjust the condition based on your primary key or unique identifier
-    def mismatchedColumns = findMismatchedColumns(rowA, rowB)
-
-    log.info("Table B Row: ${rowB}, Mismatched Columns: ${mismatchedColumns}")
+while (tableBResultSet.next()) {
+    log.info("Unmatched: Table B - " + tableBResultSet.getString(1))
 }
