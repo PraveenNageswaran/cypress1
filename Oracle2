@@ -6,6 +6,11 @@ def matchedRows = tableA.intersect(tableB)
 def mismatchedRowsInA = tableA - matchedRows
 def mismatchedRowsInB = tableB - matchedRows
 
+// Function to find a matching row in Table B for a given row in Table A
+def findMatchingRow(rowA, tableB) {
+    return tableB.find { it == rowA }
+}
+
 // Function to print mismatched columns for a row
 def printMismatchedColumns(rowA, rowB) {
     def mismatchedColumns = rowA.keySet() + rowB.keySet() - rowA.keySet().intersect(rowB.keySet())
@@ -14,7 +19,7 @@ def printMismatchedColumns(rowA, rowB) {
 
 // Print the mismatched rows and columns
 mismatchedRowsInA.each { rowA ->
-    def matchingRowInB = mismatchedRowsInB.find { it == rowA }
+    def matchingRowInB = findMatchingRow(rowA, mismatchedRowsInB)
     if (matchingRowInB) {
         printRowDetails("Table A", rowA)
         printRowDetails("Table B", matchingRowInB)
