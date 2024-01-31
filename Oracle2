@@ -1,22 +1,36 @@
 def tableAResultSet = vars.getObject("tableAResultSet")
 def tableBResultSet = vars.getObject("tableBResultSet")
 
-while (tableAResultSet.next() && tableBResultSet.next()) {
-    def rowA = tableAResultSet.getString(1) // Adjust column index accordingly
-    def rowB = tableBResultSet.getString(1) // Adjust column index accordingly
+def metaDataA = tableAResultSet.getMetaData()
+def metaDataB = tableBResultSet.getMetaData()
 
-    if (rowA.equals(rowB)) {
-        log.info("Matched: $rowA")
-    } else {
-        log.info("Unmatched: Table A - $rowA, Table B - $rowB")
+def columnsCountA = metaDataA.getColumnCount()
+def columnsCountB = metaDataB.getColumnCount()
+
+while (tableAResultSet.next() && tableBResultSet.next()) {
+    def match = true
+
+    for (int i = 1; i <= columnsCountA; i++) {
+        def valueA = tableAResultSet.getString(i)
+        def valueB = tableBResultSet.getString(i)
+
+        if (!valueA.equals(valueB)) {
+            match = false
+            log.info("Unmatched: Column ${metaDataA.getColumnName(i)} - Table A: $valueA, Table B: $valueB")
+            break
+        }
+    }
+
+    if (match) {
+        log.info("Matched: Row")
     }
 }
 
 // Check if any additional rows exist in either table
 while (tableAResultSet.next()) {
-    log.info("Unmatched: Table A - " + tableAResultSet.getString(1))
+    log.info("Unmatched: Additional row in Table A - " + tableAResultSet.getString(1))
 }
 
 while (tableBResultSet.next()) {
-    log.info("Unmatched: Table B - " + tableBResultSet.getString(1))
+    log.info("Unmatched: Additional row in Table B - " + tableBResultSet.getString(1))
 }
