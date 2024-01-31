@@ -16,3 +16,27 @@ log.info("Mismatched Rows in Table B:")
 mismatchedRowsInB.each { row ->
     log.info("Table B: ${row}")
 }
+def tableA = vars.getObject("result_set_tableA")
+def tableB = vars.getObject("result_set_tableB")
+
+// Compare the two tables
+def matchedRows = tableA.intersect(tableB)
+def mismatchedRowsInA = tableA - matchedRows
+def mismatchedRowsInB = tableB - matchedRows
+
+// Function to print column names and values for a row
+def printRowDetails(tableName, row) {
+    log.info("Mismatched Row in ${tableName}:")
+    row.each { columnName, columnValue ->
+        log.info("${columnName}: ${columnValue}")
+    }
+}
+
+// Print the mismatched values and column names
+mismatchedRowsInA.each { row ->
+    printRowDetails("Table A", row)
+}
+
+mismatchedRowsInB.each { row ->
+    printRowDetails("Table B", row)
+}
