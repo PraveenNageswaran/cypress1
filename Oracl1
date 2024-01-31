@@ -1,27 +1,12 @@
-def tableA = vars.getObject("tableA");  // Assuming you stored the result set from table A in a variable
-def tableB = vars.getObject("tableB");  // Assuming you stored the result set from table B in a variable
+def tableA = vars.getObject("result_set_tableA")
+def tableB = vars.getObject("result_set_tableB")
 
-def matchedRows = []
-def mismatchedRows = []
-
-while (tableA.next() && tableB.next()) {
-    // Compare each column in the current row
-    boolean match = true
-    for (int i = 1; i <= tableA.getMetaData().getColumnCount(); i++) {
-        if (!tableA.getObject(i).equals(tableB.getObject(i))) {
-            match = false
-            break
-        }
-    }
-
-    // Add to respective lists based on match
-    if (match) {
-        matchedRows.add("Matched: ${tableA.getString(1)}")
-    } else {
-        mismatchedRows.add("Mismatched: ${tableA.getString(1)}")
-    }
-}
+// Compare the two tables
+def matchedRows = tableA.intersect(tableB)
+def mismatchedRowsInA = tableA - matchedRows
+def mismatchedRowsInB = tableB - matchedRows
 
 // Print the results
 log.info("Matched Rows: ${matchedRows}")
-log.info("Mismatched Rows: ${mismatchedRows}")
+log.info("Mismatched Rows in Table A: ${mismatchedRowsInA}")
+log.info("Mismatched Rows in Table B: ${mismatchedRowsInB}")
