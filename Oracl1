@@ -6,7 +6,13 @@ def matchedRows = tableA.intersect(tableB)
 def mismatchedRowsInA = tableA - matchedRows
 def mismatchedRowsInB = tableB - matchedRows
 
-// Print the results
-log.info("Matched Rows: ${matchedRows}")
-log.info("Mismatched Rows in Table A: ${mismatchedRowsInA}")
-log.info("Mismatched Rows in Table B: ${mismatchedRowsInB}")
+// Print the mismatched values
+log.info("Mismatched Rows in Table A:")
+mismatchedRowsInA.each { row ->
+    log.info("Table A: ${row}")
+}
+
+log.info("Mismatched Rows in Table B:")
+mismatchedRowsInB.each { row ->
+    log.info("Table B: ${row}")
+}
