@@ -1,37 +1,38 @@
 def tableA = vars.getObject("result_set_tableA")
 def tableB = vars.getObject("result_set_tableB")
 
+// Function to find mismatched columns and values for a row
+def findMismatchedColumns(rowA, rowB) {
+    def mismatchedColumns = [:]
+    
+    rowA.each { colName, valueA ->
+        def valueB = rowB[colName]
+        if (valueA != valueB) {
+            mismatchedColumns[colName] = [valueA, valueB]
+        }
+    }
+
+    mismatchedColumns
+}
+
 // Compare the two tables
 def matchedRows = tableA.intersect(tableB)
 def mismatchedRowsInA = tableA - matchedRows
 def mismatchedRowsInB = tableB - matchedRows
 
-// Function to find a matching row in Table B for a given row in Table A
-def findMatchingRow(rowA, tableB) {
-    return tableB.find { it == rowA }
-}
-
-// Function to print mismatched columns for a row
-def printMismatchedColumns(rowA, rowB) {
-    def mismatchedColumns = rowA.keySet() + rowB.keySet() - rowA.keySet().intersect(rowB.keySet())
-    log.info("Mismatched Columns: ${mismatchedColumns}")
-}
-
-// Print the mismatched rows and columns
+// Print the mismatched columns and values
+log.info("Mismatched Rows in Table A:")
 mismatchedRowsInA.each { rowA ->
-    def matchingRowInB = findMatchingRow(rowA, mismatchedRowsInB)
-    if (matchingRowInB) {
-        printRowDetails("Table A", rowA)
-        printRowDetails("Table B", matchingRowInB)
-        printMismatchedColumns(rowA, matchingRowInB)
-        log.info("-----")
-    }
+    def rowB = tableB.find { it.id == rowA.id } // Adjust the condition based on your primary key or unique identifier
+    def mismatchedColumns = findMismatchedColumns(rowA, rowB)
+    
+    log.info("Table A Row: ${rowA}, Mismatched Columns: ${mismatchedColumns}")
 }
 
-// Function to print column names and values for a row
-def printRowDetails(tableName, row) {
-    log.info("Mismatched Row in ${tableName}:")
-    row.each { columnName, columnValue ->
-        log.info("${columnName}: ${columnValue}")
-    }
+log.info("Mismatched Rows in Table B:")
+mismatchedRowsInB.each { rowB ->
+    def rowA = tableA.find { it.id == rowB.id } // Adjust the condition based on your primary key or unique identifier
+    def mismatchedColumns = findMismatchedColumns(rowA, rowB)
+
+    log.info("Table B Row: ${rowB}, Mismatched Columns: ${mismatchedColumns}")
 }
