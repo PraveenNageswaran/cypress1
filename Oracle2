@@ -1,36 +1,46 @@
-def tableAResultSet = vars.getObject("tableAResultSet")
-def tableBResultSet = vars.getObject("tableBResultSet")
+To compare two tables in Oracle using JMeter JDBC requests and JDBC configuration, you can follow the steps below.
 
-def columnCountA = tableAResultSet.getMetaData().getColumnCount()
-def columnCountB = tableBResultSet.getMetaData().getColumnCount()
+1. JMeter JDBC Request Configuration:
+   - Add a Thread Group to your test plan.
+   - Add a JDBC Connection Configuration element under the Thread Group and configure it with the necessary database connection details such as URL, driver class, username, and password.
+   - Add JDBC Request elements under the JDBC Connection Configuration to execute queries on table A and table B.
 
-def columnsA = (1..columnCountA).collect { tableAResultSet.getMetaData().getColumnName(it) }
-def columnsB = (1..columnCountB).collect { tableBResultSet.getMetaData().getColumnName(it) }
+2. JDBC Request for Table A:
+   - Under the JDBC Request for table A, write the SQL query to retrieve the data from table A. For example: `SELECT * FROM table_a`.
 
-while (tableAResultSet.next() && tableBResultSet.next()) {
-    def match = true
+3. JDBC Request for Table B:
+   - Similarly, under the JDBC Request for table B, write the SQL query to retrieve the data from table B. For example: `SELECT * FROM table_b`.
 
-    for (int i = 1; i <= columnCountA; i++) {
-        def valueA = tableAResultSet.getString(i)
-        def valueB = tableBResultSet.getString(i)
+4. JSR223 Groovy script for comparison:
+   - Add a JSR223 PostProcessor element after the JDBC Requests for table A and table B.
+   - Select the language as Groovy and write a script to compare the data from the results of the two queries.
 
-        if (!valueA.equals(valueB)) {
-            match = false
-            log.info("Unmatched: Column ${columnsA[i-1]} - Table A: $valueA, Table B: $valueB")
-            break
+Here's a sample Groovy script to compare the two tables and print the current row:
+
+```groovy
+def tableA = vars.getObject("tableA"); // Retrieve the result set for table A from JMeter variables
+def tableB = vars.getObject("tableB"); // Retrieve the result set for table B from JMeter variables
+
+if (tableA.size() == tableB.size()) { // Check if the sizes of the result sets are equal
+    for (int i = 0; i < tableA.size(); i++) {
+        def rowA = tableA.get(i); // Get the current row from table A
+        def rowB = tableB.get(i); // Get the current row from table B
+
+        if (rowA.toString() == rowB.toString()) { // Compare the current rows
+            log.info("Row " + i + " - Matched");
+            log.info("Row A: " + rowA.toString());
+            log.info("Row B: " + rowB.toString());
+        } else {
+            log.info("Row " + i + " - Unmatched");
+            log.info("Row A: " + rowA.toString());
+            log.info("Row B: " + rowB.toString());
         }
     }
-
-    if (match) {
-        log.info("Matched: Row")
-    }
+} else {
+    log.info("Table sizes are different, cannot compare");
 }
+```
 
-// Check if any additional rows exist in either table
-while (tableAResultSet.next()) {
-    log.info("Unmatched: Additional row in Table A - " + tableAResultSet.getString(1))
-}
+In this script, we first retrieve the result sets of table A and table B using `vars.getObject` method. We then compare the sizes of the result sets, and if they are the same, we iterate through the rows and compare each row. If a match is found, we log the matched rows, and if there is no match, we log the unmatched rows along with their positions.
 
-while (tableBResultSet.next()) {
-    log.info("Unmatched: Additional row in Table B - " + tableBResultSet.getString(1))
-}
+After implementing the above steps, run the JMeter test plan to compare the two tables in Oracle. The Groovy script logic will compare the data from table A and table B and print the current row, along with whether it is matched or unmatched based on the comparison.
