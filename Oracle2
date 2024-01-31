@@ -1,0 +1,32 @@
+def tableA = vars.getObject("result_set_tableA")
+def tableB = vars.getObject("result_set_tableB")
+
+// Compare the two tables
+def matchedRows = tableA.intersect(tableB)
+def mismatchedRowsInA = tableA - matchedRows
+def mismatchedRowsInB = tableB - matchedRows
+
+// Function to print mismatched columns for a row
+def printMismatchedColumns(rowA, rowB) {
+    def mismatchedColumns = rowA.keySet() + rowB.keySet() - rowA.keySet().intersect(rowB.keySet())
+    log.info("Mismatched Columns: ${mismatchedColumns}")
+}
+
+// Print the mismatched rows and columns
+mismatchedRowsInA.each { rowA ->
+    def matchingRowInB = mismatchedRowsInB.find { it == rowA }
+    if (matchingRowInB) {
+        printRowDetails("Table A", rowA)
+        printRowDetails("Table B", matchingRowInB)
+        printMismatchedColumns(rowA, matchingRowInB)
+        log.info("-----")
+    }
+}
+
+// Function to print column names and values for a row
+def printRowDetails(tableName, row) {
+    log.info("Mismatched Row in ${tableName}:")
+    row.each { columnName, columnValue ->
+        log.info("${columnName}: ${columnValue}")
+    }
+}
