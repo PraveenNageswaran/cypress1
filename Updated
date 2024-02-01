@@ -1,22 +1,27 @@
 import { promisify } from 'util';
 import fs from 'fs';
+import path from 'path';
 
-const renameAsync = promisify(fs.rename);
+const readdirAsync = promisify(fs.readdir);
 
 (async () => {
-  const fileName = 'messages_example.txt'; // Replace with your actual file name
+  const folderPath = '/path/to/your/folder'; // Replace with your actual folder path
+  const files = await readdirAsync(folderPath);
 
-  if (fileName.startsWith('messages_') && !fileName.includes('updated')) {
-    const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
-    const newFileName = `${fileName}_updated_${timestamp}`;
+  for (const fileName of files) {
+    if (fileName.startsWith('messages_') && !fileName.includes('updated')) {
+      const filePath = path.join(folderPath, fileName);
+      const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
+      const newFileName = `${fileName}_updated_${timestamp}`;
 
-    try {
-      await renameAsync(fileName, newFileName);
-      console.log('File renamed successfully');
-    } catch (error) {
-      console.error(`Error renaming file: ${error.message}`);
+      try {
+        await renameAsync(filePath, path.join(folderPath, newFileName));
+        console.log(`File ${fileName} renamed successfully`);
+      } catch (error) {
+        console.error(`Error renaming file ${fileName}: ${error.message}`);
+      }
+    } else {
+      console.log(`File ${fileName} does not meet the criteria for renaming.`);
     }
-  } else {
-    console.log('File name does not meet the criteria for renaming.');
   }
 })();
