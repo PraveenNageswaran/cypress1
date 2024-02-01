@@ -1,0 +1,22 @@
+import { promisify } from 'util';
+import fs from 'fs';
+
+const renameAsync = promisify(fs.rename);
+
+(async () => {
+  const fileName = 'messages_example.txt'; // Replace with your actual file name
+
+  if (fileName.startsWith('messages_') && !fileName.includes('updated')) {
+    const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
+    const newFileName = `${fileName}_updated_${timestamp}`;
+
+    try {
+      await renameAsync(fileName, newFileName);
+      console.log('File renamed successfully');
+    } catch (error) {
+      console.error(`Error renaming file: ${error.message}`);
+    }
+  } else {
+    console.log('File name does not meet the criteria for renaming.');
+  }
+})();
