@@ -1,27 +1,50 @@
+def json = '''
+{
+  "name": "pinky",
+  "age": 25,
+  "education": "BE",
+  "Address": {
+    "doorNo": 2,
+    "wingNo": "A",
+    "street": {
+      "pincode": {
+        "zip": 4000,
+        "city": "chennai"
+      }
+    }
+  }
+}
+'''
+
 def isMap(obj) {
     return obj instanceof Map
 }
 
-def printMapValues(map) {
+def printMapValues(map, valuesList) {
     map.each { key, value ->
         if (isMap(value)) {
-            printMapValues(value)
+            printMapValues(value, valuesList)
         } else {
-            println value
+            valuesList.add(value)
         }
     }
 }
 
-def parseAndPrint(data) {
+def parseAndReturnValues(data) {
+    def valuesList = []
     if (isMap(data)) {
         data.each { key, value ->
             if (isMap(value)) {
-                parseAndPrint(value)
+                printMapValues(value, valuesList)
             } else {
-                println value
+                valuesList.add(value)
             }
         }
     } else {
-        println data
+        valuesList.add(data)
     }
+    return valuesList
 }
+
+def values = parseAndReturnValues(new groovy.json.JsonSlurper().parseText(json))
+values.each { println it }
