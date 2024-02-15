@@ -1,27 +1,35 @@
-def isMap(obj) {
-    return obj instanceof Map
-}
+import groovy.json.JsonSlurper
 
-def printMapKeys(map) {
-    map.each { key, value ->
-        if (isMap(value)) {
-            printMapKeys(value)
-        } else {
-            println key
-        }
+def json = '''
+{
+  "name": "pinky",
+  "age": 25,
+  "education": "BE",
+  "Address": {
+    "doorNo": 2,
+    "wingNo": "A",
+    "street": {
+      "pincode": {
+        "zip": 4000,
+        "city": "chennai"
+      }
     }
+  }
 }
+'''
 
-def parseAndPrintKeys(data) {
-    if (isMap(data)) {
-        data.each { key, value ->
-            if (isMap(value)) {
-                printMapKeys(value)
-            } else {
-                println key
+def parseAndPrintKeysAndValues(data) {
+    def extractKeysAndValues(map, keyHeading, valueHeading) {
+        map.each { key, value ->
+            println "$keyHeading: $key"
+            println "$valueHeading: $value"
+            if (value instanceof Map) {
+                extractKeysAndValues(value, keyHeading, valueHeading)
             }
         }
-    } else {
-        println "value"
     }
+    
+    extractKeysAndValues(new JsonSlurper().parseText(data), "Key", "Value")
 }
+
+parseAndPrintKeysAndValues(json)
