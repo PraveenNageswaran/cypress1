@@ -9,33 +9,40 @@ def json1Array = new JsonSlurper().parseText(json1Data)
 def json2Array = new JsonSlurper().parseText(json2Data)
 
 // Iterate through each JSON object in both arrays together
-[json1Array, json2Array].each { jsonArray ->
-    jsonArray.eachWithIndex { jsonObject, index ->
-        println "Object ${index + 1}:"
-        
-        if (jsonObject instanceof Map) {
-            // Iterate through keys and values of the JSON object
-            jsonObject.each { key, value ->
-                println "Key: $key"
-                
-                if (value instanceof List && value.isEmpty()) {
-                    println "Value: []" // Handle empty list separately
-                } else if (value instanceof Map) {
-                    println "Value: ${value.toString()}" // Print map as string
-                } else {
-                    println "Value: $value" // Print other types of values
-                }
-                
-                if (value instanceof Map) {
-                    // If value is a map, iterate through its keys and values
-                    value.each { innerKey, innerValue ->
-                        println "  Key: $innerKey"
-                        println "  Value: $innerValue"
-                    }
+println "Printing keys and values for json1Array:"
+json1Array.eachWithIndex { jsonObject, index ->
+    println "Object ${index + 1}:"
+    jsonObject.each { key, value ->
+        println "Key: $key"
+        if (value instanceof List && value.isEmpty()) {
+            println "Value: []" // Handle empty list separately
+        } else {
+            println "Value: $value"
+            if (value instanceof Map) {
+                value.each { innerKey, innerValue ->
+                    println "  Key: $innerKey"
+                    println "  Value: $innerValue"
                 }
             }
+        }
+    }
+}
+
+println "Printing keys and values for json2Array:"
+json2Array.eachWithIndex { jsonObject, index ->
+    println "Object ${index + 1}:"
+    jsonObject.each { key, value ->
+        println "Key: $key"
+        if (value instanceof List && value.isEmpty()) {
+            println "Value: []" // Handle empty list separately
         } else {
-            println "JSON object is not a map: $jsonObject"
+            println "Value: $value"
+            if (value instanceof Map) {
+                value.each { innerKey, innerValue ->
+                    println "  Key: $innerKey"
+                    println "  Value: $innerValue"
+                }
+            }
         }
     }
 }
