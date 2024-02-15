@@ -1,35 +1,28 @@
 import groovy.json.JsonSlurper
+import java.io.File
 
-def json = '''
-{
-  "name": "pinky",
-  "age": 25,
-  "education": "BE",
-  "Address": {
-    "doorNo": 2,
-    "wingNo": "A",
-    "street": {
-      "pincode": {
-        "zip": 4000,
-        "city": "chennai"
-      }
-    }
-  }
+// Read JSON data from a file and parse it
+def parseJsonFromFile(fileName) {
+    new JsonSlurper().parse(new File(fileName))
 }
-'''
 
-def parseAndPrintKeysAndValues(data) {
-    def extractKeysAndValues(map, keyHeading, valueHeading) {
-        map.each { key, value ->
-            println "$keyHeading: $key"
-            println "$valueHeading: $value"
-            if (value instanceof Map) {
-                extractKeysAndValues(value, keyHeading, valueHeading)
+// Read JSON data from the first file
+def json1Data = parseJsonFromFile("json1.json")
+
+// Read JSON data from the second file
+def json2Data = parseJsonFromFile("json2.json")
+
+// Iterate through both JSON data together
+[json1Data, json2Data].eachWithIndex { jsonData, index ->
+    println "JSON ${index + 1}:"
+    jsonData.each { key, value ->
+        println "Key: $key"
+        println "Value: $value"
+        if (value instanceof Map) {
+            value.each { innerKey, innerValue ->
+                println "  Key: $innerKey"
+                println "  Value: $innerValue"
             }
         }
     }
-    
-    extractKeysAndValues(new JsonSlurper().parseText(data), "Key", "Value")
 }
-
-parseAndPrintKeysAndValues(json)
