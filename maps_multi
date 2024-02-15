@@ -1,23 +1,28 @@
 import groovy.json.JsonSlurper
-import java.io.File
 
-// Read JSON data from json1.json
-def json1Data = new JsonSlurper().parse(new File("json1.json"))
+// Retrieve JSON data from JMeter variables
+def json1Data = vars.get("json1Data")
+def json2Data = vars.get("json2Data")
 
-// Read JSON data from json2.json
-def json2Data = new JsonSlurper().parse(new File("json2.json"))
+// Parse JSON data
+def json1Array = new JsonSlurper().parseText(json1Data)
+def json2Array = new JsonSlurper().parseText(json2Data)
 
 // Iterate through each JSON object in both arrays together
-[json1Data, json2Data].each { jsonArray ->
+[json1Array, json2Array].each { jsonArray ->
     jsonArray.eachWithIndex { jsonObject, index ->
         println "Object ${index + 1}:"
         jsonObject.each { key, value ->
             println "Key: $key"
-            println "Value: $value"
-            if (value instanceof Map) {
-                value.each { innerKey, innerValue ->
-                    println "  Key: $innerKey"
-                    println "  Value: $innerValue"
+            if (value instanceof List && value.isEmpty()) {
+                println "Value: []" // Handle empty list separately
+            } else {
+                println "Value: $value"
+                if (value instanceof Map) {
+                    value.each { innerKey, innerValue ->
+                        println "  Key: $innerKey"
+                        println "  Value: $innerValue"
+                    }
                 }
             }
         }
