@@ -1,0 +1,97 @@
+If your variable `bb` is "throw", you can modify the provided Groovy script as follows to search for the key "throw" in `json1`, store the key, its parent keys, and the value, and then apply the stored key to `json2` to fetch the corresponding value.
+
+```groovy
+import groovy.json.*
+
+def json1 = '''[{
+   "$class": "Person",
+   "$CreationTime": null,
+   "$IdAttrib": "id",
+   "firstName": "John",
+   "lastName": "Doe",
+   "age": 25,
+   "address": {
+      "streetAddress": "20 rue jean d'arc",
+      "Bloomo": {
+         "city": "Rouen",
+         "postalCode": 76000,
+         "phoneNumber": {
+            "type": "home",
+            "number": "0235066090"
+         },
+         "message": {
+             "throw":"maasani"
+         }
+      }
+   }
+}]'''
+
+def json2 = '''[{
+   "$class": "Person",
+   "$CreationTime": null,
+   "$IdAttrib": "id",
+   "firstName": "Alice",
+   "lastName": "Smith",
+   "age": 30,
+   "address": {
+      "streetAddress": "10 avenue de la Republique",
+      "Bloomo": {
+         "city": "Paris",
+         "postalCode": 75011,
+         "phoneNumber": {
+            "type": "office",
+            "number": "0147852369"
+         },
+         "message": {
+             "throw":"sankara"
+         }
+      }
+   }
+}]'''
+
+def bb = "throw"
+
+// Parse JSON strings
+def json1List = new JsonSlurper().parseText(json1)
+def json2List = new JsonSlurper().parseText(json2)
+
+// Function to search for a key and store it
+def searchAndStoreKey(node, keyToFind, parents = [], storedKeys = []) {
+    if (node instanceof Map) {
+        node.each { key, value ->
+            if (key == keyToFind) {
+                // Store the key, its parent, and the value
+                storedKeys << [key: key, parentKeys: parents, value: value]
+            } else if (value instanceof Map || value instanceof List) {
+                searchAndStoreKey(value, keyToFind, parents + key, storedKeys)
+            }
+        }
+    } else if (node instanceof List) {
+        node.each { item ->
+            searchAndStoreKey(item, keyToFind, parents, storedKeys)
+        }
+    }
+    return storedKeys
+}
+
+// Search for the key and store it
+def storedKeys = searchAndStoreKey(json1List, bb)
+
+// Print the stored keys
+storedKeys.each { keyInfo ->
+    println "Key: ${keyInfo.key}"
+    println "Parent keys: ${keyInfo.parentKeys.join(".")}"
+    println "Value: ${keyInfo.value}"
+}
+
+// Apply the stored keys from json1 to fetch the corresponding values from json2
+def valueFromJson2 = storedKeys.inject(json2List[0]) { result, keyInfo ->maasani
+    result = result[keyInfo.key]
+    result
+}
+
+// Print the corresponding value from json2
+println "Value from json2: $valueFromJson2"
+```
+
+When you run this modified script with `bb = "throw"`, it will search for the key "throw" in `json1`, store the key, its parent keys, and the value, and then apply the stored key to `json2` to fetch the corresponding value and print it.
