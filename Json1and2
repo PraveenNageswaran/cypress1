@@ -1,0 +1,84 @@
+Certainly! Here's the updated Groovy script that prints the keys and values in both json1 and json2:
+
+```groovy
+import groovy.json.JsonSlurper
+
+def json1 = '''
+[
+   {
+      "$class": "Person",
+      "$CreationTime": null,
+      "$IdAttrib": "id",
+      "firstName": "John",
+      "lastName": "Doe",
+      "age": 25,
+      "address": {
+         "streetAddress": "20 rue jean d'arc",
+         "Bloomo": {
+            "city": "Rouen",
+            "postalCode": 76000,
+            "phoneNumber": {
+               "type": "home",
+               "number": "0235066090"
+            }
+         }
+      }
+   }
+]
+'''
+
+def json2 = '''
+[
+   {
+      "$class": "Person",
+      "$CreationTime": null,
+      "$IdAttrib": "id",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "age": 30,
+      "address": {
+         "streetAddress": "10 avenue des Champs-Élysées",
+         "Bloomo": {
+            "city": "Paris",
+            "postalCode": 75008,
+            "phoneNumber": {
+               "type": "mobile",
+               "number": "0612345678"
+            }
+         }
+      }
+   }
+]
+'''
+
+def slurper = new JsonSlurper()
+def parsedJson1 = slurper.parseText(json1)
+def parsedJson2 = slurper.parseText(json2)
+
+def findValueByPath = { map, path ->
+    def keys = path.tokenize('.')
+    def current = map
+    keys.each { key ->
+        current = current[key]
+    }
+    current
+}
+
+def keyPath = "address.Bloomo.city"
+def valueInJson1 = findValueByPath(parsedJson1[0], keyPath)
+def valueInJson2 = findValueByPath(parsedJson2[0], keyPath)
+
+println "Key Path in Json1: ${keyPath}"
+println "Value in Json1: ${valueInJson1}"
+println "Value in Json2: ${valueInJson2}"
+```
+
+When you run this script, it will print the key path and values in both json1 and json2 as follows:
+
+```
+Key Path in Json1: address.Bloomo.city
+Value in Json1: Rouen
+Value in Json2: Paris
+```
+
+This output provides the key path and values for the corresponding paths in json1 and json2, as per your request.
