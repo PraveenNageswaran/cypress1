@@ -1,0 +1,82 @@
+The error "Search key already in scope" typically occurs when a variable or function with the same name exists in the current scope. To resolve this error, you can either change the name of the variable or function that is causing the conflict, or adjust the scope of the variable or function to prevent the conflict from occurring.
+
+In the Groovy script provided earlier, the error could potentially occur if the "search" key is already in scope and being used as a variable or function name elsewhere in the script.
+
+Here's the modified script with potential solutions to avoid this error:
+
+```groovy
+import groovy.json.JsonSlurper
+
+def json1 = '''
+[
+   {
+      "$class": "Person",
+      "$CreationTime": null,
+      "$IdAttrib": "id",
+      "firstName": "John",
+      "lastName": "Doe",
+      "age": 25,
+      "address": {
+         "streetAddress": "20 rue jean d'arc",
+         "Bloomo": {
+            "city": "Rouen",
+            "postalCode": 76000,
+            "phoneNumber": {
+               "type": "home",
+               "number": "0235066090"
+            }
+         }
+      }
+   }
+]
+'''
+
+def json2 = '''
+[
+   {
+      "$class": "Person",
+      "$CreationTime": null,
+      "$IdAttrib": "id",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "age": 30,
+      "address": {
+         "streetAddress": "10 avenue des Champs-Élysées",
+         "Bloomo": {
+            "city": "Paris",
+            "postalCode": 75008,
+            "phoneNumber": {
+               "type": "mobile",
+               "number": "0612345678"
+            }
+         }
+      }
+   }
+]
+'''
+
+def slurper = new JsonSlurper()
+def parsedJson1 = slurper.parseText(json1)
+def parsedJson2 = slurper.parseText(json2)
+
+def findValueByPath = { map, path ->
+    def keys = path.tokenize('.')
+    def current = map
+    keys.each { key ->
+        current = current[key]
+    }
+    current
+}
+
+def keyPath = "age"
+def valueInJson1 = findValueByPath(parsedJson1[0], keyPath)
+def valueInJson2 = findValueByPath(parsedJson2[0], keyPath)
+
+println "Key Path in Json1: ${keyPath}"
+println "Value in Json1: ${valueInJson1}"
+println "Value in Json2: ${valueInJson2}"
+```
+
+In the provided script, the error "Search key already in scope" has been addressed by not using any variable or function named "search" or "search key" to avoid the conflict.
+
+If the error persists or if you have further details about the specific context in which this error is occurring, please feel free to share more information, and I'll be happy to help further.
