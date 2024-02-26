@@ -1,63 +1,53 @@
-Certainly! You can extend the previous Groovy script to run the 'aws s3 cp' command and pass the JSON values to it. Below is the combined script that includes the previous code for parsing and modifying the JSON data, executing the 'cloud -m puuler' command, and then running the 'aws s3 cp' command using the JSON values:
+Certainly! You can modify the Groovy code to execute the AWS CLI command to list S3 bucket objects and then extract the relevant details to construct the JSON structure. Here's an example of how you can achieve this:
 
 ```groovy
-import groovy.json.JsonSlurper
+def command = ["sh", "-c", "aws s3 ls s3://your-bucket-name/your-folder-name/ --recursive"]
 
-// Your previous code for parsing and modifying JSON data
-def jsonStr = '''
-{ 
-  "iso": {
-    "sourceSystems": [
-      {
-        "source": "prs",
-        "businessDate": "22-04-2024",
-        "s3url": "www.google.com",
-        "path": "c:/misc/ting"
-      },
-      {
-        "source": "scd",
-        "businessDate": "25-05-2024",
-        "s3url": "www.yahoo.com",
-        "path": "c:/workspace/ting"
-      }
+def process = command.execute()
+def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
+def output = new StringWriter()
+def buffer = new char[1024]
+int read
+
+while ((read = reader.read(buffer)) != -1) {
+    output.write(buffer, 0, read)
+}
+reader.close()
+
+def result = output.toString()
+
+// Parse the output to extract object keys
+def objectKeys = result.split("\\s+").findAll { it.endsWith("/") } as List
+
+// Construct the JSON structure
+def jsonStructure = [
+    iso: [
+        sourceSystems: objectKeys.collect { objectKey ->
+            def folderPath = "c:/misc/ting" // Replace with the actual path
+            def parts = objectKey.split("/")
+            def source = parts[1] // Extract source from the S3 object key
+            def businessDate = parts[2] // Extract business date from the S3 object key
+            
+            [
+                source: source,
+                businessDate: businessDate,
+                s3url: "s3://your-bucket-name/${objectKey}", // Construct the S3 URL
+                path: folderPath
+            ]
+        }
     ]
-  }
-}
-'''
-def json = new JsonSlurper().parseText(jsonStr)
-json.iso.sourceSystems.each { system ->
-    def pathParts = system.path.tokenize('/')
-    pathParts = pathParts[0..-2] + [system.source] + pathParts[-1]
-    system.path = pathParts.join('/')
-}
-println new groovy.json.JsonBuilder(json).toPrettyString()
+]
 
-// Executing the 'cloud -m puuler' command
-def commandCloud = "cloud"
-def argsCloud = ["-m", "puuler"]
+// Convert the JSON structure to a JSON string
+String jsonOutput = new groovy.json.JsonBuilder(jsonStructure).toPrettyString()
 
-def processBuilderCloud = new ProcessBuilder(commandCloud, *argsCloud)
-def processCloud = processBuilderCloud.inheritIO().start()
-processCloud.waitFor()
-
-// Running the 'aws s3 cp' command and passing JSON values
-json.iso.sourceSystems.each { system ->
-    def awsCommand = "aws"
-    def awsArgs = ["s3", "cp", system.s3url, system.path]
-
-    def processBuilderAws = new ProcessBuilder(awsCommand, *awsArgs)
-    def processAws = processBuilderAws.inheritIO().start()
-    processAws.waitFor()
-}
+println(jsonOutput)
 ```
 
-In the extended script:
-- After the initial code for parsing and modifying the JSON data and executing the 'cloud -m puuler' command, a loop is added to run the 'aws s3 cp' command for each system in the JSON data.
-- Within the loop, for each system, the 'aws s3 cp' command is constructed using the 's3url' and 'path' values from the JSON data, and then executed using `ProcessBuilder`.
+In this modified example, we still use Groovy to execute the AWS CLI command to list S3 bucket objects and capture the output. We then parse the output to extract the object keys, and based on these keys, we construct the JSON structure containing the S3 object details and their relevant information such as the source, business date, S3 URL, and file path.
 
-With this combined script, you can achieve the following:
-1. Parse and modify the JSON data.
-2. Execute the 'cloud -m puuler' command.
-3. Run the 'aws s3 cp' command and pass the JSON values to it.
+Please ensure you replace `"your-bucket-name"` and `"your-folder-name"` with your actual S3 bucket name and folder name.
 
-If you have any more questions or need further assistance, feel free to ask!
+By running this Groovy script, you can extract the relevant details from the AWS CLI command output and construct the JSON structure you've described.
+
+If you have any further questions or need additional assistance, please feel free to ask!
