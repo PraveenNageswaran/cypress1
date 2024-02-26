@@ -1,52 +1,61 @@
-I see, if you have a large number of JSON files and you want to process them as they are listed by the `aws s3 ls` command, you can modify the code to directly process the output of the `aws s3 ls` command and construct the JSON structure based on the file names. Here's an example of how you can achieve this in Groovy:
+I understand your requirement. You want to update the existing `s3url` object within the JSON data with the extracted filename rather than printing the updated `s3url`. Here's an updated example of how you can achieve this in the Groovy script:
 
 ```groovy
-def command = ["sh", "-c", "aws s3 ls s3://your-bucket-name/your-folder-name/ --recursive"]
+import groovy.json.JsonSlurper
 
-def process = command.execute()
-def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
-def output = new StringWriter()
-def buffer = new char[1024]
-int read
-
-while ((read = reader.read(buffer)) != -1) {
-    output.write(buffer, 0, read)
+def json = '''
+{
+    "iso": {
+        "sourceSystems": [
+            {
+                "source": "prs",
+                "businessDate": "22-04-2024",
+                "s3url": "s3://www.yahoo.com",
+                "path": "c:/misc/ting"
+            },
+            {
+                "source": "scd",
+                "businessDate": "25-05-2024",
+                "s3url": "s3://www.hoogle.com",
+                "path": "c:/workspace/ting"
+            }
+        ]
+    }
 }
-reader.close()
+'''
 
-def result = output.toString()
+def data = new JsonSlurper().parseText(json)
 
-// Parse the output to extract object keys
-def objectKeys = result.split("\\s+").findAll { it.endsWith("json") } as List
+data.iso.sourceSystems.each { system ->
+    def s3url = system.s3url
+    println "Executing aws s3 ls for $s3url"
 
-// Construct the JSON structure
-def jsonStructure = [
-    iso: [
-        sourceSystems: objectKeys.collect { objectKey ->
-            def folderPath = "c:/misc/ting" // Replace with the actual path
-            def parts = objectKey.split(" ")
-            def businessDate = parts[0]
-            def source = parts[3]
-            def s3url = "s3://your-bucket-name/${objectKey}"
+    def processBuilder = new ProcessBuilder('aws', 's3', 'ls', s3url)
+    processBuilder.redirectErrorStream(true)
+    Process process = processBuilder.start()
+    def reader = new BufferedReader(new InputStreamReader(process.inputStream))
 
-            [
-                source: source,
-                businessDate: businessDate,
-                s3url: s3url,
-                path: folderPath
-            ]
+    String line
+    while ((line = reader.readLine()) != null) {
+        println line
+        if (line.endsWith(".json")) {
+            def filename = line.tokenize().last()
+            system.s3url = s3url + "/" + filename
         }
-    ]
-]
+    }
+    def status = process.waitFor()
+    if (status == 0) {
+        println "AWS CLI command executed successfully for $s3url"
+    } else {
+        println "Error executing aws s3 ls for $s3url: $status"
+    }
+}
 
-// Convert the JSON structure to a JSON string
-String jsonOutput = new groovy.json.JsonBuilder(jsonStructure).toPrettyString()
-
-println(jsonOutput)
+println new JsonBuilder(data).toPrettyString()
 ```
 
-In this example, the code directly processes the output of the `aws s3 ls` command to extract the object keys of the JSON files. It then constructs the JSON structure based on the extracted object keys.
+In this updated script, when the filename is extracted, it updates the `s3url` within the original JSON data. After processing all `s3url`s, it prints the updated JSON data using `JsonBuilder` to reflect the changes made.
 
-Replace `"your-bucket-name"` and `"your-folder-name"` with the actual S3 bucket name and folder name.
+This approach directly updates the `s3url` within the original JSON data, providing the functionality you requested.
 
-This code should now be able to handle a large number of JSON files listed by the `aws s3 ls` command and construct a JSON structure based on their file names. If you have any other questions or need further assistance, feel free to ask!
+If you have further questions or need additional assistance, feel free to ask!
