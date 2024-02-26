@@ -1,0 +1,63 @@
+Certainly! You can extend the previous Groovy script to run the 'aws s3 cp' command and pass the JSON values to it. Below is the combined script that includes the previous code for parsing and modifying the JSON data, executing the 'cloud -m puuler' command, and then running the 'aws s3 cp' command using the JSON values:
+
+```groovy
+import groovy.json.JsonSlurper
+
+// Your previous code for parsing and modifying JSON data
+def jsonStr = '''
+{ 
+  "iso": {
+    "sourceSystems": [
+      {
+        "source": "prs",
+        "businessDate": "22-04-2024",
+        "s3url": "www.google.com",
+        "path": "c:/misc/ting"
+      },
+      {
+        "source": "scd",
+        "businessDate": "25-05-2024",
+        "s3url": "www.yahoo.com",
+        "path": "c:/workspace/ting"
+      }
+    ]
+  }
+}
+'''
+def json = new JsonSlurper().parseText(jsonStr)
+json.iso.sourceSystems.each { system ->
+    def pathParts = system.path.tokenize('/')
+    pathParts = pathParts[0..-2] + [system.source] + pathParts[-1]
+    system.path = pathParts.join('/')
+}
+println new groovy.json.JsonBuilder(json).toPrettyString()
+
+// Executing the 'cloud -m puuler' command
+def commandCloud = "cloud"
+def argsCloud = ["-m", "puuler"]
+
+def processBuilderCloud = new ProcessBuilder(commandCloud, *argsCloud)
+def processCloud = processBuilderCloud.inheritIO().start()
+processCloud.waitFor()
+
+// Running the 'aws s3 cp' command and passing JSON values
+json.iso.sourceSystems.each { system ->
+    def awsCommand = "aws"
+    def awsArgs = ["s3", "cp", system.s3url, system.path]
+
+    def processBuilderAws = new ProcessBuilder(awsCommand, *awsArgs)
+    def processAws = processBuilderAws.inheritIO().start()
+    processAws.waitFor()
+}
+```
+
+In the extended script:
+- After the initial code for parsing and modifying the JSON data and executing the 'cloud -m puuler' command, a loop is added to run the 'aws s3 cp' command for each system in the JSON data.
+- Within the loop, for each system, the 'aws s3 cp' command is constructed using the 's3url' and 'path' values from the JSON data, and then executed using `ProcessBuilder`.
+
+With this combined script, you can achieve the following:
+1. Parse and modify the JSON data.
+2. Execute the 'cloud -m puuler' command.
+3. Run the 'aws s3 cp' command and pass the JSON values to it.
+
+If you have any more questions or need further assistance, feel free to ask!
