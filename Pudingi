@@ -1,4 +1,4 @@
-Certainly! You can modify the Groovy code to execute the AWS CLI command to list S3 bucket objects and then extract the relevant details to construct the JSON structure. Here's an example of how you can achieve this:
+I see, if you have a large number of JSON files and you want to process them as they are listed by the `aws s3 ls` command, you can modify the code to directly process the output of the `aws s3 ls` command and construct the JSON structure based on the file names. Here's an example of how you can achieve this in Groovy:
 
 ```groovy
 def command = ["sh", "-c", "aws s3 ls s3://your-bucket-name/your-folder-name/ --recursive"]
@@ -17,21 +17,22 @@ reader.close()
 def result = output.toString()
 
 // Parse the output to extract object keys
-def objectKeys = result.split("\\s+").findAll { it.endsWith("/") } as List
+def objectKeys = result.split("\\s+").findAll { it.endsWith("json") } as List
 
 // Construct the JSON structure
 def jsonStructure = [
     iso: [
         sourceSystems: objectKeys.collect { objectKey ->
             def folderPath = "c:/misc/ting" // Replace with the actual path
-            def parts = objectKey.split("/")
-            def source = parts[1] // Extract source from the S3 object key
-            def businessDate = parts[2] // Extract business date from the S3 object key
-            
+            def parts = objectKey.split(" ")
+            def businessDate = parts[0]
+            def source = parts[3]
+            def s3url = "s3://your-bucket-name/${objectKey}"
+
             [
                 source: source,
                 businessDate: businessDate,
-                s3url: "s3://your-bucket-name/${objectKey}", // Construct the S3 URL
+                s3url: s3url,
                 path: folderPath
             ]
         }
@@ -44,10 +45,8 @@ String jsonOutput = new groovy.json.JsonBuilder(jsonStructure).toPrettyString()
 println(jsonOutput)
 ```
 
-In this modified example, we still use Groovy to execute the AWS CLI command to list S3 bucket objects and capture the output. We then parse the output to extract the object keys, and based on these keys, we construct the JSON structure containing the S3 object details and their relevant information such as the source, business date, S3 URL, and file path.
+In this example, the code directly processes the output of the `aws s3 ls` command to extract the object keys of the JSON files. It then constructs the JSON structure based on the extracted object keys.
 
-Please ensure you replace `"your-bucket-name"` and `"your-folder-name"` with your actual S3 bucket name and folder name.
+Replace `"your-bucket-name"` and `"your-folder-name"` with the actual S3 bucket name and folder name.
 
-By running this Groovy script, you can extract the relevant details from the AWS CLI command output and construct the JSON structure you've described.
-
-If you have any further questions or need additional assistance, please feel free to ask!
+This code should now be able to handle a large number of JSON files listed by the `aws s3 ls` command and construct a JSON structure based on their file names. If you have any other questions or need further assistance, feel free to ask!
