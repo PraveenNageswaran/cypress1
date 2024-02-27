@@ -1,0 +1,40 @@
+Certainly! Below is a Groovy script to read the values from the provided CSV file, construct the required output, and print the result.
+
+```groovy
+@Grapes([
+    @Grab('com.xlson.groovycsv:groovycsv:1.1')
+])
+
+import static com.xlson.groovycsv.CsvParser.parseCsv
+
+// Read the CSV file
+def csvFile = new File("your_file_path.csv") // Replace "your_file_path.csv" with the actual file path
+def data = parseCsv(csvFile)
+
+def sourceAlias = data[0]["source_alias"]
+def targetAlias = data[0]["target_alias"]
+def sourcePk = data[0]["source_pk"]
+def targetPk = data[0]["target_pk"]
+
+def sourceFields = sourcePk.tokenize(',')
+def targetFields = targetPk.tokenize(',')
+
+def output = ""
+
+// Construct the output
+for (int i = 0; i < sourceFields.size(); i++) {
+    output += "${sourceAlias}.${sourceFields[i]}=${targetAlias}.${targetFields[i]}"
+    if (i < sourceFields.size() - 1) {
+        output += " and "
+    }
+}
+
+// Print the output
+println output
+```
+
+In this script, we use the `groovycsv` library to parse the CSV file and read the necessary values. Then, we construct the required output by iterating over the source and target fields, and we print the result.
+
+Ensure to replace `"your_file_path.csv"` with the actual file path of your CSV file when using this script.
+
+Let me know if you need further assistance!
