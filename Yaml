@@ -1,33 +1,17 @@
-I see the issue. It seems that there was a typo in the previous code snippet, and I appreciate your patience. Let me correct that for you:
-
-```groovy
 import org.yaml.snakeyaml.Yaml
+import org.apache.commons.io.FileUtils
 
-// Load the YAML file
+// Load YAML file
+def yamlData = FileUtils.readFileToString(new File("path/to/your/file.yaml"))
+
+// Parse YAML
 def yaml = new Yaml()
-def data = new File('/path/to/your/file.yaml').text
-def parsedData = yaml.load(data)
+def yamlObject = yaml.load(yamlData)
 
-// Write to CSV
-def csvOutput = new StringWriter()
-def headerWritten = false
-parsedData.each { item ->
-    if (!headerWritten){
-        csvOutput.write(item.keySet().join(',') + '\n')
-        headerWritten = true
-    }
-    csvOutput.write(item.values().join(',') + '\n')
-}
+// Convert YAML data to CSV
+def csvContent = yamlObject.collect { key, value ->
+    "${key},${value}"
+}.join("\n")
 
-// Save CSV to a file
-new File('/path/to/output/file.csv').write(csvOutput.toString())
-```
-
-In this revised version:
-- We use the `each` method to iterate through the parsed data.
-- Within the loop, we check if the CSV header has been written, and if not, we write the keys from the first element as the header.
-- Then, we write the values of each item as the data rows in the CSV file.
-
-Please replace `'/path/to/your/file.yaml'` with the actual path to your YAML file, and `'/path/to/output/file.csv'` with the path where you want to save the CSV file.
-
-I hope this revised script helps address the issue. If you encounter further challenges or have more questions, feel free to ask!
+// Store CSV content in JMeter variable
+vars.put("csvContent", csvContent)
