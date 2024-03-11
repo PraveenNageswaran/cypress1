@@ -13,5 +13,9 @@ def csvContent = yamlObject.collect { key, value ->
     "${key},${value}"
 }.join("\n")
 
-// Store CSV content in JMeter variable
-vars.put("csvContent", csvContent)
+// Write CSV content to file
+def csvFile = new File("path/to/your/output.csv")
+FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
+
+// Log success message
+log.info("CSV file saved at: " + csvFile.absolutePath)
