@@ -1,41 +1,50 @@
-In the JSR223 Sampler of Apache JMeter, you can use Groovy scripting to achieve the YAML to XLSX conversion. Here's an example Groovy code that you can directly use in the JSR223 Sampler in JMeter:
+To convert a YAML file to a CSV format using Apache JMeter, you can use a scripting language supported by JMeter, and a library to parse YAML files.
+
+One way to achieve this is to use a JSR223 Sampler with a scripting language such as Groovy or JavaScript. You can leverage a YAML library to parse the YAML file and then write the parsed data to a CSV file.
+
+Here's an example using Groovy and the SnakeYAML library to achieve the conversion:
+
+1. **Add SnakeYAML Library to JMeter**:
+   - Download the SnakeYAML library JAR file from Maven Central or another trusted source.
+   - Place the downloaded JAR file in the lib folder of your JMeter installation.
+
+2. **Create the Conversion Script**:
+   - Add a JSR223 Sampler to your test plan in JMeter. Choose the language as Groovy.
+   - Write a script to read the YAML file and convert it to a CSV format.
+
+Here's a simple example using Groovy and SnakeYAML to get you started:
 
 ```groovy
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.yaml.snakeyaml.Yaml
 
-// Load YAML data from file
+// Load the YAML file
 def yaml = new Yaml()
-def data = new File('path_to_your_yaml_file.yaml').withReader { reader ->
-    yaml.load(reader)
+def data = new File('path_to_your_yaml_file.yaml').text
+
+// Parse the YAML content
+def parsedData = yaml.load(data)
+
+// Create a FileWriter to write to a CSV file
+def csvFile = new FileWriter('output.csv')
+
+// Write headers to the CSV file (assuming keys from the YAML file as headers)
+csvFile.write(parsedData.keySet().join(",") + "\n")
+
+// Write values to the CSV file
+parsedData.each { key, value ->
+    csvFile.write(value.values().join(",") + "\n")
 }
 
-// Create a new Excel workbook
-def workbook = new XSSFWorkbook()
-def sheet = workbook.createSheet("Data")
-
-// Write the YAML data to the Excel sheet
-def rowNum = 0
-data.each { key, value ->
-    def row = sheet.createRow(rowNum++)
-    row.createCell(0).setCellValue(key.toString())
-    row.createCell(1).setCellValue(value.toString())
-}
-
-// Save the workbook to an XLSX file
-def fileOut = new FileOutputStream("path_to_output_excel_file.xlsx")
-workbook.write(fileOut)
-fileOut.close()
-workbook.close()
+// Close the FileWriter
+csvFile.close()
 ```
 
-To use this code in the JSR223 Sampler within JMeter, follow these steps:
+In this example, we first load the YAML file as a string and use SnakeYAML to parse its content. We then create and write the parsed data to a CSV file.
 
-1. Open your JMeter test plan.
-2. Add a Thread Group and inside that, add a JSR223 Sampler.
-3. Choose "groovy" as the scripting language in the JSR223 Sampler.
-4. Copy and paste the above Groovy code into the "Script" area of the JSR223 Sampler.
+Replace `"path_to_your_yaml_file.yaml"` with the actual path to your YAML file. Additionally, handle exceptions and resource cleanup for a robust solution.
 
-Remember to replace `'path_to_your_yaml_file.yaml'` with the actual path to your YAML file, and `'path_to_output_excel_file.xlsx'` with the desired path and filename for the output Excel file.
+After adding this script to your JMeter test plan, execute the test to see the conversion in action. Once the test is complete, you can verify that the CSV file has been created with the data from the YAML file.
 
-You can then execute the test plan, and the JSR223 Sampler will execute the Groovy code to perform the conversion of the YAML file to an XLSX file within your JMeter test.
+Ensure that you have the necessary permissions to read and write files at the specified locations. Handle errors and close resources for a robust solution.
+
+Remember that this example is a starting point, and you might need to modify it according to the specific structure of your YAML data.
