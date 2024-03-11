@@ -1,23 +1,26 @@
-When using the JDBC Request sampler in JMeter to connect to Amazon Athena, you'll also need to specify the database name as part of the JDBC URL. Amazon Athena does not require you to specify a specific database name in the traditional sense as it deals with schemaless data and tables in the AWS Glue Data Catalog.
+If your AWS access key and secret key are stored in the `.aws` folder, you can still dynamically retrieve these credentials and use them in your JMeter test plan. However, it's important to ensure that you handle these credentials securely and avoid exposing them unnecessarily within your test configurations.
 
-However, you can still use the JDBC URL to connect to Athena, and you can specify the default catalog and workgroup within the JDBC URL.
+Here's a high-level approach to leverage the AWS credentials stored in the `.aws` folder within your JMeter test plan:
 
-Here's an example of how to include the database name, default catalog, and workgroup when using the JDBC URL for Amazon Athena in JMeter's JDBC Request sampler:
+1. **Use AWS CLI Profile:**
+   If you have configured the AWS Command Line Interface (CLI) with named profiles and stored your AWS credentials in the `.aws` folder, you can leverage the AWS credentials provider chain to automatically use the credentials from your named profile when running your JMeter test plan.
 
-```plain
-jdbc:awsathena://athena.{region}.amazonaws.com:443/?aws_credentials_provider_class=com.amazonaws.auth.DefaultAWSCredentialsProviderChain;S3OutputLocation=s3://your-bucket/path/to/query-results;Workgroup=your-workgroup;Schema=your-database
-```
+2. **Configure AWS Credential Provider in JMeter:**
+   When using the JDBC Request sampler in JMeter to connect to Amazon Athena, you can set the `aws_credentials_provider_class` parameter in the JDBC URL to `com.amazonaws.auth.profile.ProfileCredentialsProvider` and specify the AWS profile name to use.
 
-In the above JDBC URL:
+   Example:
+   Assuming you have a named profile called `myprofile` in your AWS credentials file (`.aws/credentials`), you can specify the profile name in the JDBC URL as follows:
 
-- `{region}` should be replaced with the appropriate AWS region for your Amazon Athena setup.
-- `aws_credentials_provider_class` parameter sets the AWS credentials provider class.
-- `S3OutputLocation` specifies the location in Amazon S3 where query results are stored.
-- `Workgroup` specifies the workgroup name for Athena.
-- `Schema` specifies the default database (catalog) name to use for the connection.
+   ```
+   jdbc:awsathena://athena.<REGION>.amazonaws.com:443/<DATABASE_NAME>?aws_credentials_provider_class=com.amazonaws.auth.profile.ProfileCredentialsProvider&aws_credentials_provider_arguments=myprofile
+   ```
 
-Replace `your-bucket`, `your-path`, `your-workgroup`, and `your-database` with the actual values specific to your Amazon Athena environment.
+3. **Security Considerations:**
+   It's important to emphasize the security implications of using credentials from the `.aws` folder within your JMeter test plan. Ensure that you follow best practices for securing your test environment, such as restricting access to the test configurations and results, and considering the implications of using real production credentials in test environments.
 
-By including the database name and other necessary details in the JDBC URL, you can configure the JDBC Request sampler in JMeter to connect to Amazon Athena with the appropriate settings.
+4. **Refreshing Credentials:**
+   If your AWS credentials in the `.aws` folder are configured to automatically refresh (for example, using credentials with limited lifespan or assuming IAM roles), be aware of how this automatic refresh behavior might impact your JMeter test execution. In such cases, ensure that your test plan can handle dynamic credential updates gracefully.
 
-If you have any more questions or need further assistance with setting up the JDBC Request sampler in JMeter for Amazon Athena, feel free to ask!
+By leveraging the AWS credentials stored in the `.aws` folder and configuring the AWS credentials provider in JMeter, you can use these credentials within your test plan without hard-coding them directly.
+
+Remember to exercise caution and follow security best practices when handling credentials in any environment, including your testing environment. If you have further questions or need additional assistance with integrating AWS credentials into your JMeter test plan, feel free to share more details, and I'd be happy to provide further guidance.
