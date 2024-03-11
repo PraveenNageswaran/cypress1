@@ -1,0 +1,48 @@
+Certainly! Connecting and querying Amazon Athena using JMeter's JDBC Request sampler involves configuring JMeter with the necessary JDBC driver and creating a JDBC request to execute the desired SQL query.
+
+Here are the steps to connect and query Athena using the JDBC Request sampler in JMeter 5.6.2:
+
+Step 1: Download Athena JDBC Driver
+- Visit the official AWS website or Maven repository to download the Athena JDBC driver JAR file. Ensure that you download from a trusted and official source.
+- You can find the Athena JDBC driver on the Maven repository under the group "com.amazonaws" and the artifact ID "athena-jdbc."
+
+Step 2: Add JDBC Driver to JMeter
+- Once you have downloaded the Athena JDBC driver JAR file, place it in the lib folder of your JMeter installation directory.
+
+Step 3: Open JMeter
+- Launch JMeter and create a new Test Plan.
+
+Step 4: Add JDBC Connection Configuration
+- Right-click on Test Plan -> Add -> Config Element -> JDBC Connection Configuration
+- Set the following configuration properties:
+  - Variable Name: Provide a variable name for the JDBC connection (e.g., "athenaConnection")
+  - Database URL: Set the JDBC connection URL for Athena. It should be in the format "jdbc:awsathena://athena.{region}.amazonaws.com:443/{database};s3_staging_dir={StagingDirectory};user={AccessKey};password={SecretKey};"
+  - JDBC Driver class: Set the driver class for Athena JDBC (e.g., "com.simba.athena.jdbc.Driver")
+
+Step 5: Add JDBC Request Sampler
+- Right-click on Thread Group -> Add -> Sampler -> JDBC Request
+- Configure the JDBC Request sampler as follows:
+  - Variable Name: Provide a variable name to store the result set (e.g., "athenaResults")
+  - Query Type: Choose "Select Statement" if you are running a SELECT query, or "Update Statement" for non-SELECT queries
+  - Query: Enter your SQL query to be executed against Athena
+
+Step 6: Add Listener for Viewing Results (Optional)
+- Right-click on Thread Group -> Add -> Listener -> View Results Tree
+- This step is optional and allows you to view the query results in JMeter.
+
+Step 7: Run the Test
+- Save and run the test plan. JMeter will connect to Amazon Athena, execute the SQL query, and store the result set in the specified variable.
+
+Example:
+Let's say you want to query a sample table named "sample_table" in the Athena database. Here's an example of how your JDBC Request sampler configuration would look:
+
+JDBC Request Sampler:
+- Variable Name: athenaResults
+- Query Type: Select Statement
+- Query: SELECT * FROM sample_table
+
+Now, when you run the test plan, JMeter will connect to Amazon Athena using the specified JDBC connection configuration and execute the SELECT query against the "sample_table" table. The results will be stored in the "athenaResults" variable.
+
+Finally, remember to replace placeholders such as {region}, {database}, {StagingDirectory}, {AccessKey}, and {SecretKey} with your specific AWS Athena and IAM user credentials.
+
+Please ensure to obtain the Athena JDBC driver from a trusted source, such as the official AWS website or Maven repository. Additionally, be cautious when handling sensitive AWS credentials and ensure proper access controls are in place.
