@@ -1,46 +1,27 @@
-I understand that you want to ensure that all the fields from your YAML file are mapped to the corresponding headers in the CSV output. In the previous example, I provided a basic mapping for specific fields, but now, we'll aim to dynamically map all the fields from the YAML file to the CSV headers. Here's a modified example in Groovy that achieves this:
+def csvContent = ""
 
-```groovy
-@Grapes([
-    @Grab('org.yaml:snakeyaml:1.29')
-])
-
-import org.yaml.snakeyaml.Yaml
-import java.util.stream.Collectors
-
-// Read the YAML file
-def yaml = new Yaml()
-def data = new File('your_yaml_file.yaml').text
-def parsedData = yaml.load(data)
-
-// Extract all unique keys from the YAML structure
-def allKeys = parsedData.paths.collectMany { path, details ->
-    details.collectMany { operation, info ->
-        info.parameters?.collectMany { parameter ->
-            parameter.keySet()
-        }
+// Generate CSV headers
+def headers = yamlObject.collect { key, value ->
+    if (value instanceof Map) {
+        value.keySet()
+    } else {
+        []
     }
-}.flatten().unique()
+}.flatten().unique().join(",")
 
-// Write the CSV data to a file
-new File('output.csv').withWriter { writer ->
-    writer.write allKeys.join(',') + '\n'
-    
-    parsedData.paths.each { path, details ->
-        details.each { operation, info ->
-            info.parameters?.each { parameter ->
-                def line = allKeys.collect { key ->
-                    parameter.containsKey(key) ? "\"${parameter[key]}\"" : ''
-                }.join(',')
-                writer.write "${line}\n"
-            }
-        }
+csvContent += headers + "\n"
+
+// Generate CSV rows
+yamlObject.paths.each { path, methods ->
+    methods.each { method, details ->
+        def rowValues = headers.split(",").collect { details[it] ?: "" }
+        csvContent += rowValues.join(",") + "\n"
     }
 }
-```
 
-In this updated script, it identifies all the unique keys from the YAML structure and uses them as the headers for the CSV file. It then loops through the YAML data to construct the CSV rows by mapping each field value to the appropriate header. Finally, it writes the CSV data to a file named `output.csv`.
+// Write CSV content to file
+def csvFile = new File("path/to/your/output.csv")
+FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
 
-By using this approach, the script dynamically handles all the fields present in the YAML file, ensuring that they are appropriately mapped to the corresponding headers in the CSV output.
-
-Feel free to adjust the script as per your specific requirements or if you need further assistance!
+// Log success message
+log.info("CSV file saved at: " + csvFile.absolutePath)
