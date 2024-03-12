@@ -1,0 +1,43 @@
+Understood! If you prefer to simplify the script without using a separate function for merging the JSON files, it can be achieved by directly inserting the merging logic into the main part of the script. Here's an updated example using Groovy that accomplishes this:
+
+```groovy
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import groovy.io.FileType
+
+// Define the paths
+def paths = [
+    kS_prs_messages_pqth, k5_prs_messages_path, k4_prs_messages_path, dlr_prs_messages_path,
+    V_SRT, k5_srt_messages_path, k4_srt_messages_path, dlr_srt_messages_path
+]
+
+// Create a list to store the contents of JSON files
+def mergedData = []
+
+// Merge JSON files directly without a separate function
+paths.each { path ->
+    if (new File(path).exists()) {
+        new File(path).eachFileRecurse(FileType.FILES) { file ->
+            if (file.name.startsWith("messages_") && file.name.endsWith(".json")) {
+                def jsonSlurper = new JsonSlurper()
+                def jsonData = jsonSlurper.parse(file, 'UTF-8')
+                mergedData.addAll(jsonData)
+            }
+        }
+    }
+}
+
+// Write the merged data to a single JSON file
+def outputFilePath = "merged_messages.json"
+new File(outputFilePath).withWriter { writer ->
+    writer << JsonOutput.prettyPrint(JsonOutput.toJson(mergedData))
+}
+
+println "Merged JSON file has been created at: ${new File(outputFilePath).absolutePath}"
+```
+
+In this updated script, we have removed the separate function for merging JSON files and directly included the merging logic within the main part of the script. The script iterates through the specified directories and their subdirectories, merging the JSON files into the `mergedData` list.
+
+The rest of the script remains the same, writing the merged data to a single JSON file named "merged_messages.json".
+
+You can run this modified Groovy script for merging the JSON files from the specified directories into a single file, and it will achieve the desired result without using a separate function for merging.
