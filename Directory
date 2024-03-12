@@ -1,0 +1,44 @@
+Absolutely! You can revise the script to utilize the `startsWith` method for checking the file names. Here's the modified Groovy script:
+
+```groovy
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import groovy.io.FileType
+
+// Define the paths
+def paths = [
+    kS_prs_messages_pqth, k5_prs_messages_path, k4_prs_messages_path, dlr_prs_messages_path,
+    V_SRT, k5_srt_messages_path, k4_srt_messages_path, dlr_srt_messages_path
+]
+
+// Create a list to store the contents of JSON files
+def mergedData = []
+
+// Merge JSON files directly without a separate function
+paths.each { path ->
+    if (new File(path).exists()) {
+        new File(path).eachFileRecurse(FileType.FILES) { file ->
+            if (file.name.startsWith("messages_") || file.name.startsWith("data_") || file.name.startsWith("chocolate_")) {
+                def jsonSlurper = new JsonSlurper()
+                def jsonData = jsonSlurper.parse(file, 'UTF-8')
+                mergedData.addAll(jsonData)
+                file.delete() // Delete the merged file
+            }
+        }
+    }
+}
+
+// Write the merged data to a single JSON file
+def outputFilePath = "merged_messages.json"
+new File(outputFilePath).withWriter { writer ->
+    writer << JsonOutput.prettyPrint(JsonOutput.toJson(mergedData))
+}
+
+println "Merged JSON file has been created at: ${new File(outputFilePath).absolutePath}"
+```
+
+In this revised script, we've updated the condition inside the `eachFileRecurse` loop to use the `startsWith` method to check if the file names start with "messages_", "data_", or "chocolate_". This approach ensures that only files with the specified prefixes will be considered for merging.
+
+After merging the JSON files and writing the merged data to a single file, the script will delete the original files that match the specified prefixes.
+
+You can utilize this modified Groovy script to merge the JSON files with file names starting with "messages_", "data_", or "chocolate_" from the specified directories into a single file and have the original files deleted after the merge operation is completed.
