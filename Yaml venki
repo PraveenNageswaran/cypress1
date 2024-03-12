@@ -1,4 +1,4 @@
-Certainly! Here's how you can modify the Groovy script to convert a YAML file to CSV with each key as a header and its corresponding value mapped correctly:
+Apologies for the oversight. It seems the YAML file might be empty or not properly structured. Let's add some error handling to ensure the script runs smoothly even if there are empty or malformed YAML files. Here's the modified script:
 
 ```groovy
 import org.yaml.snakeyaml.Yaml
@@ -9,28 +9,35 @@ def yamlData = FileUtils.readFileToString(new File("path/to/your/file.yaml"))
 
 // Parse YAML
 def yaml = new Yaml()
-def yamlObject = yaml.load(yamlData)
+def yamlObjects = yaml.loadAll(yamlData)
+
+// Initialize headers and CSV content
+def headers = ""
+def csvContent = ""
 
 // Extract headers from the first YAML object
-def headers = yamlObject[0].keySet().join(",")
-
-// Initialize CSV content with headers
-def csvContent = headers + "\n"
+if (yamlObjects.hasNext()) {
+    headers = yamlObjects.next().keySet().join(",")
+    csvContent += headers + "\n"
+} else {
+    log.error("YAML file is empty or contains no valid YAML objects.")
+}
 
 // Generate CSV rows
-yamlObject.each { obj ->
+while (yamlObjects.hasNext()) {
+    def obj = yamlObjects.next()
     def values = obj.values().join(",")
     csvContent += values + "\n"
 }
 
 // Write CSV content to file
-def csvFile = new File("path/to/your/output.csv")
-FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
-
-// Log success message
-log.info("CSV file saved at: " + csvFile.absolutePath)
+if (!csvContent.empty) {
+    def csvFile = new File("path/to/your/output.csv")
+    FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
+    log.info("CSV file saved at: " + csvFile.absolutePath)
+} else {
+    log.error("No valid YAML objects found to convert to CSV.")
+}
 ```
 
-Replace `"path/to/your/file.yaml"` with the actual path to your YAML file, and `"path/to/your/output.csv"` with the desired path and filename for the CSV output file.
-
-This script reads the YAML file, extracts the headers from the first YAML object, then iterates over each YAML object to extract its values. It constructs CSV rows with headers and values, and then writes the CSV content to a file. Finally, it logs a message indicating the location where the CSV file was saved.
+This script now checks for empty or malformed YAML files and logs appropriate error messages. It only proceeds with the conversion if there are valid YAML objects to process. Adjust the file paths as needed, and let me know if you encounter any further issues!
