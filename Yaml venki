@@ -2,7 +2,7 @@ import org.yaml.snakeyaml.Yaml
 import org.apache.commons.io.FileUtils
 
 // Load YAML file
-def yamlFile = new File('C:/Workspace/pp.yaml')
+def yamlFile = new File('C:/Wo/pp.yaml')
 def yamlData = FileUtils.readFileToString(yamlFile, "UTF-8")
 
 // Parse YAML
@@ -12,25 +12,31 @@ def yamlObject = yaml.load(yamlData)
 // Initialize CSV content
 def csvContent = ""
 
-// Generate CSV headers dynamically
-def headers = yamlObject.collect { key, value ->
-    if (value instanceof Map) {
-        value.keySet()
-    } else {
-        []
+// Function to flatten nested maps
+def flattenMap(map, prefix = '') {
+    map.collectMany { key, value ->
+        if (value instanceof Map) {
+            flattenMap(value, "$prefix$key.")
+        } else {
+            ["$prefix$key": value]
+        }
     }
-}.flatten().unique().join(",")
+}
 
+// Generate CSV headers dynamically
+def headers = flattenMap(yamlObject).keySet().join(",")
 csvContent += headers + "\n"
 
 // Generate CSV rows
-yamlObject.each { key, value ->
-    def rowValues = headers.split(",").collect { value[it] ?: "" }
+def rows = yamlObject instanceof List ? yamlObject : [yamlObject] // Handle multiple documents
+rows.each { row ->
+    def flatRow = flattenMap(row)
+    def rowValues = headers.split(",").collect { flatRow[it] ?: "" }
     csvContent += rowValues.join(",") + "\n"
 }
 
 // Write CSV content to file
-def outputFile = new File('C:/Workspace/output.csv')
+def outputFile = new File('C:/Workse/output.csv')
 FileUtils.writeStringToFile(outputFile, csvContent, "UTF-8")
 
 log.info("CSV file saved at: ${outputFile.absolutePath}")
