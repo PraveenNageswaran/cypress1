@@ -1,6 +1,18 @@
+import org.yaml.snakeyaml.Yaml
+import org.apache.commons.io.FileUtils
+
+// Load YAML file
+def yamlFile = new File('C:/Workspace/pp.yaml')
+def yamlData = FileUtils.readFileToString(yamlFile, "UTF-8")
+
+// Parse YAML
+def yaml = new Yaml()
+def yamlObject = yaml.load(yamlData)
+
+// Initialize CSV content
 def csvContent = ""
 
-// Generate CSV headers
+// Generate CSV headers dynamically
 def headers = yamlObject.collect { key, value ->
     if (value instanceof Map) {
         value.keySet()
@@ -12,16 +24,13 @@ def headers = yamlObject.collect { key, value ->
 csvContent += headers + "\n"
 
 // Generate CSV rows
-yamlObject.paths.each { path, methods ->
-    methods.each { method, details ->
-        def rowValues = headers.split(",").collect { details[it] ?: "" }
-        csvContent += rowValues.join(",") + "\n"
-    }
+yamlObject.each { key, value ->
+    def rowValues = headers.split(",").collect { value[it] ?: "" }
+    csvContent += rowValues.join(",") + "\n"
 }
 
 // Write CSV content to file
-def csvFile = new File("path/to/your/output.csv")
-FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
+def outputFile = new File('C:/Workspace/output.csv')
+FileUtils.writeStringToFile(outputFile, csvContent, "UTF-8")
 
-// Log success message
-log.info("CSV file saved at: " + csvFile.absolutePath)
+log.info("CSV file saved at: ${outputFile.absolutePath}")
