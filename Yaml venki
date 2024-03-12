@@ -1,44 +1,46 @@
-Apologies for the confusion. Let's adjust the script to handle YAML parsing without using `hasNext()`. Instead, we'll iterate over the YAML objects using a for loop. Here's the updated script:
+I understand that you want to ensure that all the fields from your YAML file are mapped to the corresponding headers in the CSV output. In the previous example, I provided a basic mapping for specific fields, but now, we'll aim to dynamically map all the fields from the YAML file to the CSV headers. Here's a modified example in Groovy that achieves this:
 
 ```groovy
+@Grapes([
+    @Grab('org.yaml:snakeyaml:1.29')
+])
+
 import org.yaml.snakeyaml.Yaml
-import org.apache.commons.io.FileUtils
+import java.util.stream.Collectors
 
-// Load YAML file
-def yamlData = FileUtils.readFileToString(new File("path/to/your/file.yaml"))
-
-// Parse YAML
+// Read the YAML file
 def yaml = new Yaml()
-def yamlObjects = yaml.loadAll(yamlData)
+def data = new File('your_yaml_file.yaml').text
+def parsedData = yaml.load(data)
 
-// Initialize headers and CSV content
-def headers = ""
-def csvContent = ""
+// Extract all unique keys from the YAML structure
+def allKeys = parsedData.paths.collectMany { path, details ->
+    details.collectMany { operation, info ->
+        info.parameters?.collectMany { parameter ->
+            parameter.keySet()
+        }
+    }
+}.flatten().unique()
 
-// Extract headers from the first YAML object
-def firstObject = yamlObjects.find()
-
-if (firstObject) {
-    headers = firstObject.keySet().join(",")
-    csvContent += headers + "\n"
-} else {
-    log.error("YAML file is empty or contains no valid YAML objects.")
-}
-
-// Generate CSV rows
-for (def obj : yamlObjects) {
-    def values = obj.values().join(",")
-    csvContent += values + "\n"
-}
-
-// Write CSV content to file
-if (!csvContent.empty) {
-    def csvFile = new File("path/to/your/output.csv")
-    FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
-    log.info("CSV file saved at: " + csvFile.absolutePath)
-} else {
-    log.error("No valid YAML objects found to convert to CSV.")
+// Write the CSV data to a file
+new File('output.csv').withWriter { writer ->
+    writer.write allKeys.join(',') + '\n'
+    
+    parsedData.paths.each { path, details ->
+        details.each { operation, info ->
+            info.parameters?.each { parameter ->
+                def line = allKeys.collect { key ->
+                    parameter.containsKey(key) ? "\"${parameter[key]}\"" : ''
+                }.join(',')
+                writer.write "${line}\n"
+            }
+        }
+    }
 }
 ```
 
-This script iterates over each YAML object using a for loop instead of `hasNext()`. It extracts headers from the first YAML object and then generates CSV rows for each subsequent YAML object. Let me know if this resolves the issue!
+In this updated script, it identifies all the unique keys from the YAML structure and uses them as the headers for the CSV file. It then loops through the YAML data to construct the CSV rows by mapping each field value to the appropriate header. Finally, it writes the CSV data to a file named `output.csv`.
+
+By using this approach, the script dynamically handles all the fields present in the YAML file, ensuring that they are appropriately mapped to the corresponding headers in the CSV output.
+
+Feel free to adjust the script as per your specific requirements or if you need further assistance!
