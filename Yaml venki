@@ -1,4 +1,4 @@
-Apologies for the oversight. It seems the YAML file might be empty or not properly structured. Let's add some error handling to ensure the script runs smoothly even if there are empty or malformed YAML files. Here's the modified script:
+Apologies for the confusion. Let's adjust the script to handle YAML parsing without using `hasNext()`. Instead, we'll iterate over the YAML objects using a for loop. Here's the updated script:
 
 ```groovy
 import org.yaml.snakeyaml.Yaml
@@ -16,16 +16,17 @@ def headers = ""
 def csvContent = ""
 
 // Extract headers from the first YAML object
-if (yamlObjects.hasNext()) {
-    headers = yamlObjects.next().keySet().join(",")
+def firstObject = yamlObjects.find()
+
+if (firstObject) {
+    headers = firstObject.keySet().join(",")
     csvContent += headers + "\n"
 } else {
     log.error("YAML file is empty or contains no valid YAML objects.")
 }
 
 // Generate CSV rows
-while (yamlObjects.hasNext()) {
-    def obj = yamlObjects.next()
+for (def obj : yamlObjects) {
     def values = obj.values().join(",")
     csvContent += values + "\n"
 }
@@ -40,4 +41,4 @@ if (!csvContent.empty) {
 }
 ```
 
-This script now checks for empty or malformed YAML files and logs appropriate error messages. It only proceeds with the conversion if there are valid YAML objects to process. Adjust the file paths as needed, and let me know if you encounter any further issues!
+This script iterates over each YAML object using a for loop instead of `hasNext()`. It extracts headers from the first YAML object and then generates CSV rows for each subsequent YAML object. Let me know if this resolves the issue!
