@@ -1,0 +1,36 @@
+Certainly! Here's how you can modify the Groovy script to convert a YAML file to CSV with each key as a header and its corresponding value mapped correctly:
+
+```groovy
+import org.yaml.snakeyaml.Yaml
+import org.apache.commons.io.FileUtils
+
+// Load YAML file
+def yamlData = FileUtils.readFileToString(new File("path/to/your/file.yaml"))
+
+// Parse YAML
+def yaml = new Yaml()
+def yamlObject = yaml.load(yamlData)
+
+// Extract headers from the first YAML object
+def headers = yamlObject[0].keySet().join(",")
+
+// Initialize CSV content with headers
+def csvContent = headers + "\n"
+
+// Generate CSV rows
+yamlObject.each { obj ->
+    def values = obj.values().join(",")
+    csvContent += values + "\n"
+}
+
+// Write CSV content to file
+def csvFile = new File("path/to/your/output.csv")
+FileUtils.writeStringToFile(csvFile, csvContent, "UTF-8")
+
+// Log success message
+log.info("CSV file saved at: " + csvFile.absolutePath)
+```
+
+Replace `"path/to/your/file.yaml"` with the actual path to your YAML file, and `"path/to/your/output.csv"` with the desired path and filename for the CSV output file.
+
+This script reads the YAML file, extracts the headers from the first YAML object, then iterates over each YAML object to extract its values. It constructs CSV rows with headers and values, and then writes the CSV content to a file. Finally, it logs a message indicating the location where the CSV file was saved.
