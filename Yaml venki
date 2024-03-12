@@ -2,12 +2,12 @@ import org.yaml.snakeyaml.Yaml
 import org.apache.commons.io.FileUtils
 
 // Load YAML file
-def yamlFile = new File('C:/Wo/pp.yaml')
+def yamlFile = new File('C:/Woace/pp.yaml')
 def yamlData = FileUtils.readFileToString(yamlFile, "UTF-8")
 
 // Parse YAML
 def yaml = new Yaml()
-def yamlObject = yaml.load(yamlData)
+def yamlObjects = yaml.loadAll(yamlData)
 
 // Initialize CSV content
 def csvContent = ""
@@ -24,19 +24,23 @@ def flattenMap(map, prefix = '') {
 }
 
 // Generate CSV headers dynamically
-def headers = flattenMap(yamlObject).keySet().join(",")
+def headers = []
+yamlObjects.each { yamlObject ->
+    def flatMap = flattenMap(yamlObject)
+    headers.addAll(flatMap.keySet())
+}
+headers = headers.unique().join(",")
 csvContent += headers + "\n"
 
 // Generate CSV rows
-def rows = yamlObject instanceof List ? yamlObject : [yamlObject] // Handle multiple documents
-rows.each { row ->
-    def flatRow = flattenMap(row)
-    def rowValues = headers.split(",").collect { flatRow[it] ?: "" }
+yamlObjects.each { yamlObject ->
+    def flatMap = flattenMap(yamlObject)
+    def rowValues = headers.split(",").collect { flatMap[it] ?: "" }
     csvContent += rowValues.join(",") + "\n"
 }
 
 // Write CSV content to file
-def outputFile = new File('C:/Workse/output.csv')
+def outputFile = new File('C:/Worace/output.csv')
 FileUtils.writeStringToFile(outputFile, csvContent, "UTF-8")
 
 log.info("CSV file saved at: ${outputFile.absolutePath}")
