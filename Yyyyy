@@ -1,0 +1,37 @@
+To format the JSON response as an array of objects with all key-value pairs inside a single object (as requested), you can modify the Groovy script in the JSR223 PostProcessor Sampler in JMeter. Here is an updated version of the script that will produce the desired JSON format:
+
+```groovy
+// Get the response data from the previous sampler
+def responseData = prev.getResponseDataAsString()
+
+// Parse the response data as JSON
+def json = new groovy.json.JsonSlurper().parseText(responseData)
+
+// Convert the JSON object to a JSON array with a single object containing all key-value pairs
+def jsonObject = [:]
+json.each { key, value ->
+    jsonObject[key] = value
+}
+def jsonArray = [jsonObject]
+
+// Convert the JSON array to a string
+def jsonArrayString = new groovy.json.JsonBuilder(jsonArray).toPrettyString()
+
+// Set the JSON array as a Sample Variable
+vars.put("jsonArray", jsonArrayString)
+
+// Print the JSON array to the JMeter log
+log.info("JSON Array: " + jsonArrayString)
+```
+
+With this updated script, the JSON array output will have a single object containing all key-value pairs from the original JSON response, formatted as requested:
+
+```json
+[{
+    "key1": "value1",
+    "key2": "value2",
+    "key3": "value3"
+}]
+```
+
+This format represents a JSON array with a single object inside it, where all key-value pairs from the original JSON response are included in that object. This output can be used for further processing, validation, or passing as a parameter in subsequent requests within your JMeter test plan.
