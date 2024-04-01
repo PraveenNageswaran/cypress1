@@ -1,0 +1,91 @@
+Certainly! Here are some examples illustrating how you can apply the coding standards and best practices for HTTP requests in JMeter scripts:
+
+1. **Naming Conventions:**
+   
+   ```plaintext
+   Sample HTTP Request Names:
+   - Login Request
+   - Search Product API Request
+   - Add to Cart Request
+   ```
+
+2. **URLs and Paths:**
+   
+   ```plaintext
+   Base URL: ${base_url}
+   Endpoint Paths:
+   - Login: /api/login
+   - Product Search: /api/products/search
+   ```
+
+3. **Parameters and Headers:**
+   
+   ```plaintext
+   Parameters:
+   - Username: ${username}
+   - Password: ${password}
+   
+   Headers:
+   - Content-Type: application/json
+   - Authorization: Bearer ${access_token}
+   ```
+
+4. **HTTP Methods:**
+   
+   ```plaintext
+   Method: POST (for Login)
+   Method: GET (for Product Search)
+   ```
+
+5. **Assertions and Validations:**
+   
+   ```plaintext
+   Response Code Assertion: 200 (for successful requests)
+   Response Data Assertion: "Product Found: ABC123"
+   Response Time Assertion: Maximum response time < 500 ms
+   ```
+
+6. **Response Handling:**
+   
+   ```plaintext
+   Store Response Data: ${product_id} = ${response_data}
+   Log Response: Response received - ${response_data}
+   Error Handling: Retry request on failure
+   ```
+
+7. **Comments and Documentation:**
+   
+   ```plaintext
+   // Login Request - Sends username and password to authenticate user
+   // Asserts response code and validates access token for subsequent requests
+   ```
+
+8. **Organizational Structure:**
+   
+   ```plaintext
+   Transaction Controller: User Login Flow
+      - Login Request
+      - Search Product API Request
+      - Add to Cart Request
+   Include Controller: Common Utility Functions
+   ```
+
+9. **Parameterization and Data-Driven Testing:**
+   
+   ```plaintext
+   Parameterization:
+   - ${username} = ${__CSVRead(users.csv,1)}
+   - ${password} = ${__CSVRead(users.csv,2)}
+   
+   Data-Driven Testing:
+   - Iterate over CSV file with different usernames and passwords
+   ```
+
+10. **Performance Optimization:**
+   
+   ```plaintext
+   Optimize Requests: Avoid sending unnecessary data in requests
+   Concurrency/Thread Groups: Simulate increasing user loads with defined ramp-up periods
+   ```
+
+These examples demonstrate how you can implement the coding standards and best practices for HTTP requests in JMeter scripts to ensure clarity, consistency, and efficiency in your performance testing efforts.
