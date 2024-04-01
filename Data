@@ -1,0 +1,42 @@
+Certainly! Here are some examples of how you can name threads in JMeter following the coding standards mentioned earlier:
+
+1. Descriptive Names:
+   - LoginThread
+   - SearchThread
+   - CheckoutThread
+
+2. Consistent Naming Convention:
+   - UserThread-1
+   - UserThread-2
+   - AdminThread-1
+   - AdminThread-2
+
+3. Avoid Special Characters:
+   - UserThread1
+   - AdminThread1
+   - SearchThread1
+
+4. Grouping Threads:
+   - [User Threads]
+     - UserLoginThread
+     - UserSearchThread
+   - [Admin Threads]
+     - AdminLoginThread
+     - AdminSearchThread
+
+5. Using Variables or Functions:
+   - UserThread-${__threadNum}
+   - Thread-${__time(yyMMddHHmmss)}
+
+6. Documented Naming Convention:
+   - In your test plan documentation:
+     "Thread naming convention: [ThreadType][Task]-[Increment]"
+
+7. Test and Validate:
+   - During execution, verify the thread names in the View Results Tree listener:
+     - UserThread-1
+     - UserThread-2
+     - AdminThread-1
+     - AdminThread-2
+
+These examples demonstrate how you can apply the coding standards for naming threads in JMeter to create clear, consistent, and organized thread names in your test plan.
