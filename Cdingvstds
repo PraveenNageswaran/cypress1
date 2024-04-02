@@ -1,51 +1,419 @@
-When it comes to writing Groovy scripts for JSR223 Samplers in JMeter, following coding standards and best practices is essential to ensure readability, maintainability, and performance of your test scripts. Here are some recommended coding standards for writing Groovy scripts in JSR223 Samplers:
+### 1. Use Descriptive Variable Names:
 
-1. **Use Descriptive Variable Names**:
-   - Choose meaningful and descriptive variable names that reflect the purpose or content of the variable.
-   - Avoid using single-character variable names or ambiguous abbreviations that can make the code harder to understand.
+#### Good Example:
+```groovy
+def username = "john_doe"
+def password = "P@ssw0rd"
 
-2. **Comment Your Code**:
-   - Provide clear and concise comments to explain the logic and functionality of your code.
-   - Comment important sections of the script to guide other users and your future self in understanding the script's purpose.
+def login(username, password) {
+    // Login logic here
+    return true
+}
 
-3. **Avoid Global Variables**:
-   - Minimize the use of global variables within your script to prevent conflicts and ensure better script encapsulation.
-   - Prefer passing variables as parameters or using local variables within the script.
+def searchProduct(String keyword) {
+    // Search product logic here
+    return "Product found"
+}
 
-4. **Handle Exceptions**:
-   - Use try-catch blocks to handle exceptions and errors gracefully within your script.
-   - Log or report any exceptions to assist in troubleshooting and debugging.
+def addToCart(String product) {
+    // Add to cart logic here
+    return "Product added to cart"
+}
 
-5. **Use Required Imports**:
-   - Import only the necessary classes and packages at the beginning of your script to keep it clean and organized.
-   - Avoid importing unused libraries or classes that can bloat the script.
+def checkout() {
+    // Checkout logic here
+    return "Order placed successfully"
+}
 
-6. **Avoid Hardcoding Values**:
-   - Parameterize your scripts by using variables or properties files to store configurable values.
-   - Avoid hardcoding values directly into the script to facilitate script reuse and maintainability.
+// Main execution flow
+if (login(username, password)) {
+    def searchResult = searchProduct("laptop")
+    if (searchResult == "Product found") {
+        def cartResult = addToCart("laptop")
+        if (cartResult == "Product added to cart") {
+            def orderResult = checkout()
+            log.info("Order Status: ${orderResult}")
+        }
+    }
+}
+```
 
-7. **Optimize Script Performance**:
-   - Write efficient and optimized code to improve the performance of your scripts.
-   - Avoid unnecessary computations, loops, or operations that can impact the script's execution time.
+#### Bad Example:
+```groovy
+def a = "john_doe"
+def b = "P@ssw0rd"
+def c = true
+def d = "Product found"
+def e = "Product added to cart"
+def f = "Order placed successfully"
+if (c) {
+    if (d == "Product found") {
+        if (e == "Product added to cart") {
+            if (checkout() == f) {
+                log.info("Order Status: " + f)
+            }
+        }
+    }
+}
+```
 
-8. **Use Groovy Language Features**:
-   - Leverage Groovy language features such as closures, dynamic typing, and native support for lists and maps to write concise and expressive code.
-   - Familiarize yourself with Groovy syntax and features to write effective scripts.
+Using descriptive variable names like `username`, `password`, `searchResult`, `cartResult`, etc., makes the code more readable and understandable. It helps to convey the purpose of each variable and function clearly, leading to better maintainability and collaboration within the team.
 
-9. **Unit Test Your Scripts**:
-   - Write unit tests for your Groovy scripts to validate their functionality and behavior.
-   - Unit testing helps in identifying errors early and ensures the reliability of your scripts.
 
-10. **Follow Groovy Style Guide**:
-    - Adhere to the Groovy style guide and conventions to maintain consistency and readability in your scripts.
-    - Consistent indentation, spacing, and formatting make the code easier to read and understand.
+### 2. Keep Scripts Simple and Readable:
 
-11. **Version Control**:
-    - Keep your scripts under version control using a tool like Git to track changes and collaborate with team members.
-    - Version control helps in managing script revisions and facilitates collaboration in a multi-user environment.
+#### Good Example:
+```groovy
+def username = "john_doe"
+def password = "P@ssw0rd"
 
-12. **Review and Refactor**:
-    - Regularly review your Groovy scripts for readability, efficiency, and adherence to coding standards.
-    - Refactor code segments that are complex, redundant, or do not follow best practices.
+def login(username, password) {
+    // Login logic here
+    return true
+}
 
-By following these coding standards for writing Groovy scripts in JSR223 Samplers in JMeter, you can create maintainable, efficient, and reliable test scripts for performance testing. Adhering to coding standards not only improves the quality of your scripts but also streamlines the development process and enhances collaboration within your testing team.
+def searchProduct(String keyword) {
+    // Search product logic here
+    return "Product found"
+}
+
+def addToCart(String product) {
+    // Add to cart logic here
+    return "Product added to cart"
+}
+
+def checkout() {
+    // Checkout logic here
+    return "Order placed successfully"
+}
+
+// Main execution flow
+if (login(username, password)) {
+    def searchResult = searchProduct("laptop")
+    if (searchResult == "Product found") {
+        def cartResult = addToCart("laptop")
+        if (cartResult == "Product added to cart") {
+            def orderResult = checkout()
+            log.info("Order Status: ${orderResult}")
+        }
+    }
+}
+```
+
+#### Bad Example:
+```groovy
+def a = "john_doe"
+def b = "P@ssw0rd"
+def c = true
+def d = "Product found"
+def e = "Product added to cart"
+def f = "Order placed successfully"
+if (c) {
+    if (d == "Product found") {
+        if (e == "Product added to cart") {
+            if (checkout() == f) {
+                log.info("Order Status: " + f)
+            }
+        }
+    }
+}
+```
+### 3. Use Descriptive Function Names:
+
+#### Good Example:
+```groovy
+def calculateTotalPrice(double price, int quantity) {
+    def totalPrice = price * quantity
+    return totalPrice
+}
+
+def formatCurrency(double amount) {
+    def formattedAmount = "$" + String.format("%.2f", amount)
+    return formattedAmount
+}
+
+def displayOrderSummary(String productName, double price, int quantity) {
+    def total = calculateTotalPrice(price, quantity)
+    def formattedTotal = formatCurrency(total)
+    
+    log.info("Order Summary:")
+    log.info("Product Name: ${productName}")
+    log.info("Price Per Unit: ${formatCurrency(price)}")
+    log.info("Quantity: ${quantity}")
+    log.info("Total Price: ${formattedTotal}")
+}
+
+// Main execution flow
+def product = "Laptop"
+def unitPrice = 1200.00
+def qty = 2
+
+displayOrderSummary(product, unitPrice, qty)
+```
+
+#### Bad Example:
+```groovy
+def func1(double a, int b) {
+    def c = a * b
+    return c
+}
+
+def func2(double x) {
+    def y = "$" + String.format("%.2f", x)
+    return y
+}
+
+def func3(String p, double pr, int q) {
+    def t = func1(pr, q)
+    def f = func2(t)
+    
+    log.info("Order Summary:")
+    log.info("Product Name: ${p}")
+    log.info("Price Per Unit: ${func2(pr)}")
+    log.info("Quantity: ${q}")
+    log.info("Total Price: ${f}")
+}
+
+// Main execution flow
+def product = "Laptop"
+def unitPrice = 1200.00
+def qty = 2
+
+func3(product, unitPrice, qty)
+```
+
+Using descriptive function names like `calculateTotalPrice`, `formatCurrency`, and `displayOrderSummary` helps in understanding the purpose and functionality of each function. It makes the code more readable and self-explanatory, aiding in code maintenance and troubleshooting. Additionally, clear function names contribute to the overall clarity and effectiveness of the script, as shown in the good example.
+Keeping your scripts simple and readable is crucial for maintainability and collaboration within the team. By using clear variable names, well-structured functions, and a logical flow of execution as shown in the good example, you can ensure that your code is easy to understand and enhance. This approach facilitates troubleshooting, debugging, and scaling the script effectively.
+
+### 4. Avoid Hardcoding Values:
+
+#### Good Example:
+```groovy
+def baseUrl = "https://example.com"
+def username = vars.get("username")
+def password = vars.get("password")
+
+def login(username, password) {
+    // Login logic here
+    return true
+}
+
+def searchProduct(String keyword) {
+    // Search product logic here
+    return "Product found"
+}
+
+def addToCart(String product) {
+    // Add to cart logic here
+    return "Product added to cart"
+}
+
+def checkout() {
+    // Checkout logic here
+    return "Order placed successfully"
+}
+
+// Main execution flow
+if (login(username, password)) {
+    def searchResult = searchProduct("laptop")
+    if (searchResult == "Product found") {
+        def cartResult = addToCart("laptop")
+        if (cartResult == "Product added to cart") {
+            def orderResult = checkout()
+            log.info("Order Status: ${orderResult}")
+        }
+    }
+}
+```
+
+#### Bad Example:
+```groovy
+def baseUrl = "https://example.com"
+def username = "john_doe"
+def password = "P@ssw0rd"
+
+def login(username, password) {
+    // Login logic here
+    return true
+}
+
+def searchProduct(String keyword) {
+    // Search product logic here
+    return "Product found"
+}
+
+def addToCart(String product) {
+    // Add to cart logic here
+    return "Product added to cart"
+}
+
+def checkout() {
+    // Checkout logic here
+    return "Order placed successfully"
+}
+
+// Main execution flow
+if (login(username, password)) {
+    def searchResult = searchProduct("laptop")
+    if (searchResult == "Product found") {
+        def cartResult = addToCart("laptop")
+        if (cartResult == "Product added to cart") {
+            def orderResult = checkout()
+            log.info("Order Status: ${orderResult}")
+        }
+    }
+}
+```
+
+Avoiding hardcoded values like usernames and passwords in your scripts increases reusability, maintainability, and security. By retrieving dynamic values from JMeter variables using `vars.get("variableName")`, as shown in the good example, you can make your scripts more flexible and adaptable for different test scenarios. This approach allows for easy parameterization and avoids the need to modify the script code for each test run. Furthermore, it enhances security by keeping sensitive information separate from the script logic.
+
+### 5. Follow Coding Standards:
+
+#### Example:
+```groovy
+// Use lowerCamelCase for variable and function names
+def baseUrl = "https://example.com"
+def username = vars.get("username")
+def password = vars.get("password")
+
+// Use PascalCase for class names (if applicable)
+class User {
+    String firstName
+    String lastName
+    
+    User(String firstName, String lastName) {
+        this.firstName = firstName
+        this.lastName = lastName
+    }
+    
+    String getFullName() {
+        return "${this.firstName} ${this.lastName}"
+    }
+}
+
+def loginUser(String username, String password) {
+    // Login logic here
+    return true
+}
+
+def searchProduct(String keyword) {
+    // Search product logic here
+    return "Product found"
+}
+
+// Use indentation for better readability
+if (loginUser(username, password)) {
+    def searchResult = searchProduct("laptop")
+    log.info("Search Result: ${searchResult}")
+}
+```
+
+### 6. Optimize Script Performance:
+
+#### Example:
+```groovy
+// Avoid repetitive computations outside loops
+def total = 0
+def prices = [10.0, 20.0, 30.0]
+
+// Bad performance optimization
+for (def price in prices) {
+    total += price * 2
+}
+
+// Good performance optimization
+def multiplier = 2
+for (def price in prices) {
+    total += price * multiplier
+}
+
+log.info("Total: ${total}")
+```
+
+### 7. Handle Exceptions Appropriately:
+
+#### Example:
+```groovy
+try {
+    def result = 10/0 // Divide by zero to trigger an exception
+    log.info("Result: ${result}")
+} catch (Exception e) {
+    log.error("An error occurred: ${e.message}")
+}
+```
+
+### 8. Comment Code Effectively:
+
+#### Example:
+```groovy
+// Method to calculate the total price based on unit price and quantity
+def calculateTotalPrice(double price, int quantity) {
+    def totalPrice = price * quantity
+    return totalPrice
+}
+
+// Main execution flow
+def unitPrice = 25.0
+def qty = 5
+
+def total = calculateTotalPrice(unitPrice, qty)
+log.info("Total Price: ${total}")
+```
+
+### 9. Organize Scripts into Reusable Functions:
+
+#### Example:
+```groovy
+def calculateTotalPrice(double price, int quantity) {
+    def totalPrice = price * quantity
+    return totalPrice
+}
+
+def formatCurrency(double amount) {
+    def formattedAmount = "$" + String.format("%.2f", amount)
+    return formattedAmount
+}
+
+def displayOrderSummary(String productName, double price, int quantity) {
+    def total = calculateTotalPrice(price, quantity)
+    def formattedTotal = formatCurrency(total)
+    
+    log.info("Order Summary:")
+    log.info("Product Name: ${productName}")
+    log.info("Price Per Unit: ${formatCurrency(price)}")
+    log.info("Quantity: ${quantity}")
+    log.info("Total Price: ${formattedTotal}")
+}
+
+// Main execution flow
+def product = "Laptop"
+def unitPrice = 1200.00
+def qty = 2
+
+displayOrderSummary(product, unitPrice, qty)
+```
+
+### 10. Test and Validate Scripts:
+
+#### Example:
+```groovy
+// Function to validate email format
+def validateEmail(String email) {
+    def emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    return emailPattern.matcher(email).matches()
+}
+
+// Test the email validation function
+def testEmailValidation() {
+    def validEmail = "test@example.com"
+    def invalidEmail = "invalid_email"
+    
+    assert validateEmail(validEmail) == true
+    assert validateEmail(invalidEmail) == false
+}
+
+// Execute the test
+testEmailValidation()
+```
+
+These examples showcase how to follow coding standards, optimize script performance, handle exceptions, comment code effectively, organize scripts into reusable functions, and test and validate scripts effectively in Apache JMeter using Groovy scripting language. By incorporating these best practices, you can ensure that your JMeter scripts are efficient, maintainable, and reliable for performance testing purposes.
