@@ -1,51 +1,105 @@
-When it comes to writing Groovy scripts for JSR223 Samplers in JMeter, following coding standards and best practices is essential to ensure readability, maintainability, and performance of your test scripts. Here are some recommended coding standards for writing Groovy scripts in JSR223 Samplers:
+Certainly! Here are some examples demonstrating how you can utilize the JSR223 Sampler in Apache JMeter with various scripting languages:
 
-1. **Use Descriptive Variable Names**:
-   - Choose meaningful and descriptive variable names that reflect the purpose or content of the variable.
-   - Avoid using single-character variable names or ambiguous abbreviations that can make the code harder to understand.
+1. **Groovy Scripting:**
 
-2. **Comment Your Code**:
-   - Provide clear and concise comments to explain the logic and functionality of your code.
-   - Comment important sections of the script to guide other users and your future self in understanding the script's purpose.
+```groovy
+// Sample Groovy script in JSR223 Sampler
+def firstName = "John"
+def lastName = "Doe"
+log.info("Full Name: ${firstName} ${lastName}")
+```
 
-3. **Avoid Global Variables**:
-   - Minimize the use of global variables within your script to prevent conflicts and ensure better script encapsulation.
-   - Prefer passing variables as parameters or using local variables within the script.
+2. **JavaScript Scripting:**
 
-4. **Handle Exceptions**:
-   - Use try-catch blocks to handle exceptions and errors gracefully within your script.
-   - Log or report any exceptions to assist in troubleshooting and debugging.
+```javascript
+// Sample JavaScript script in JSR223 Sampler
+var firstName = "Jane";
+var lastName = "Smith";
+log.info("Full Name: " + firstName + " " + lastName);
+```
 
-5. **Use Required Imports**:
-   - Import only the necessary classes and packages at the beginning of your script to keep it clean and organized.
-   - Avoid importing unused libraries or classes that can bloat the script.
+3. **Python Scripting:**
 
-6. **Avoid Hardcoding Values**:
-   - Parameterize your scripts by using variables or properties files to store configurable values.
-   - Avoid hardcoding values directly into the script to facilitate script reuse and maintainability.
+```python
+# Sample Python script in JSR223 Sampler
+first_name = "Alice"
+last_name = "Johnson"
+log.info("Full Name: %s %s" % (first_name, last_name))
+```
 
-7. **Optimize Script Performance**:
-   - Write efficient and optimized code to improve the performance of your scripts.
-   - Avoid unnecessary computations, loops, or operations that can impact the script's execution time.
+4. **Ruby Scripting:**
 
-8. **Use Groovy Language Features**:
-   - Leverage Groovy language features such as closures, dynamic typing, and native support for lists and maps to write concise and expressive code.
-   - Familiarize yourself with Groovy syntax and features to write effective scripts.
+```ruby
+# Sample Ruby script in JSR223 Sampler
+first_name = "Michael"
+last_name = "Brown"
+log.info("Full Name: #{first_name} #{last_name}")
+```
 
-9. **Unit Test Your Scripts**:
-   - Write unit tests for your Groovy scripts to validate their functionality and behavior.
-   - Unit testing helps in identifying errors early and ensures the reliability of your scripts.
+5. **Java Scripting (using Java syntax):**
 
-10. **Follow Groovy Style Guide**:
-    - Adhere to the Groovy style guide and conventions to maintain consistency and readability in your scripts.
-    - Consistent indentation, spacing, and formatting make the code easier to read and understand.
+```java
+// Sample Java script in JSR223 Sampler
+String firstName = "Emily";
+String lastName = "Davis";
+log.info("Full Name: " + firstName + " " + lastName);
+```
 
-11. **Version Control**:
-    - Keep your scripts under version control using a tool like Git to track changes and collaborate with team members.
-    - Version control helps in managing script revisions and facilitates collaboration in a multi-user environment.
+6. **Scripting with Variables and Functions:**
 
-12. **Review and Refactor**:
-    - Regularly review your Groovy scripts for readability, efficiency, and adherence to coding standards.
-    - Refactor code segments that are complex, redundant, or do not follow best practices.
+```groovy
+// Using variables and functions in Groovy script
+def num1 = 10;
+def num2 = 20;
 
-By following these coding standards for writing Groovy scripts in JSR223 Samplers in JMeter, you can create maintainable, efficient, and reliable test scripts for performance testing. Adhering to coding standards not only improves the quality of your scripts but also streamlines the development process and enhances collaboration within your testing team.
+def sum = num1 + num2;
+log.info("Sum: " + sum);
+
+// Custom function
+def multiply(int a, int b) {
+    return a * b;
+}
+
+def result = multiply(5, 4);
+log.info("Result: " + result);
+```
+
+7. **Interacting with JMeter variables:**
+
+```groovy
+// Accessing JMeter variables in Groovy script
+def userName = vars.get("username");
+def password = vars.get("password");
+
+log.info("Username: " + userName);
+log.info("Password: " + password);
+```
+
+8. **Handling Assertions and Validations:**
+
+```groovy
+// Using assertions in Groovy script
+assert responseCode.equals("200"), "Response code is not 200";
+log.info("Response code is 200");
+
+// Validating response data
+if (prev.getResponseDataAsString().contains("success")) {
+    log.info("Request succeeded");
+} else {
+    log.error("Request failed");
+}
+```
+
+9. **Exception Handling:**
+
+```groovy
+// Exception handling in Groovy script
+try {
+    def result = 100 / 0; // division by zero will throw an exception
+    log.info("Result: " + result);
+} catch (Exception ex) {
+    log.error("Error executing script: " + ex.getMessage());
+}
+```
+
+These examples highlight the versatility of the JSR223 Sampler in Apache JMeter, showcasing how you can leverage different scripting languages to customize and enhance your performance testing scripts with dynamic behavior, assertions, variable interactions, and error handling.
