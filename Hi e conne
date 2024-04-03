@@ -1,46 +1,60 @@
-If you have a `krb5-01.ini` configuration file instead of the traditional `krb5.conf`, you can still use it in your script by specifying the path to this custom configuration file. Here's how you can modify the script to include the path to your `krb5-01.ini` config file:
+If you do not have the Hive JDBC driver available, you can use the Apache Hive JDBC client jar to connect to Hive in a JMeter script. Here's an example of how you can do this using the Apache Hive JDBC client jar:
+
+1. Download the Apache Hive JDBC client jar from the Apache Hive website or Maven repository.
+
+2. Place the downloaded Hive JDBC client jar in the `/lib` directory of your JMeter installation.
+
+3. Use a JSR223 Sampler with a Groovy script in JMeter to connect to Hive using the Hive JDBC client jar. Here's an example script:
 
 ```groovy
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Properties;
-import org.apache.hadoop.security.UserGroupInformation;
+import java.sql.*;
 
-// Hive JDBC connection properties
-def hiveUrl = "jdbc:hive2://your-hive-server:10000/default";
-def principal = "your-service-principal@YOUR-REALM.COM";
-def keytabLocation = "/path/to/your/keytab/file.keytab";
-def coreSitePath = "/path/to/your/core-site.xml";
-def hdfsSitePath = "/path/to/your/hdfs-site.xml";
-def krb5IniPath = "/path/to/your/krb5-01.ini"; // Path to your krb5-01.ini config file
-def hiveDriver = "org.apache.hive.jdbc.HiveDriver"; // Hive JDBC driver class
+// Define your Hadoop and Kerberos configuration properties
+String connectionType = "kerberos";
+String principal = "jmeteruser@REALM";
+String keytabFile = "/path/to/jmeteruser.keytab";
+String connectionString = "jdbc:hive2://hive-host:10000/default;";
+String hdfsSite = "/path/to/hdfs-site.xml";
+String coreSite = "/path/to/core-site.xml";
 
-// Load the Hive JDBC driver
-Class.forName(hiveDriver);
+// Set the necessary Kerberos configuration properties
+System.setProperty("java.security.krb5.conf", "/path/to/krb5.conf");
+Configuration conf = new Configuration();
+conf.addResource(new Path(hdfsSite));
+conf.addResource(new Path(coreSite));
 
-// Load CoreSite configuration
-def coreSite = new File(coreSitePath).text;
-def hdfsSite = new File(hdfsSitePath).text;
+// Login using the specified principal and keytab
+UserGroupInformation.setConfiguration(conf);
+UserGroupInformation.loginUserFromKeytab(principal, keytabFile);
 
-// Set Kerberos system properties
-System.setProperty("java.security.krb5.conf", krb5IniPath);
-System.setProperty("java.security.auth.login.config", "/etc/jaas.conf");
+Connection con = null;
+Statement stmt = null;
+ResultSet rs = null;
 
-// Login with Kerberos keytab
-UserGroupInformation.loginUserFromKeytab(principal, keytabLocation);
+try {
+    // Load Hive JDBC driver
+    Class.forName("org.apache.hive.jdbc.HiveDriver");
 
-// Connect to Hive
-Connection connection = DriverManager.getConnection(hiveUrl);
+    // Establish connection to Hive
+    con = DriverManager.getConnection(connectionString);
 
-...
+    stmt = con.createStatement();
+    rs = stmt.executeQuery("SELECT * FROM table_name");
 
-// Continue with the rest of your script for executing queries, processing results, and closing resources
+    while (rs.next()) {
+        // Process the query result
+    }
+} catch (Exception e) {
+    log.error("Error executing query: " + e.getMessage());
+} finally {
+    if (rs != null) rs.close();
+    if (stmt != null) stmt.close();
+    if (con != null) con.close();
+}
 ```
 
-In this updated script, I have added a `krb5IniPath` variable to hold the path to your `krb5-01.ini` configuration file. The script now sets the `java.security.krb5.conf` system property to point to your custom `krb5-01.ini` file.
+In this script, replace `/path/to/hive-jdbc-client.jar`, `/path/to/krb5.conf`, `/path/to/jmeteruser.keytab`, `hive-host`, `default`, and `table_name` with your actual configurations and table details.
 
-Make sure to replace `"/path/to/your/krb5-01.ini"` with the actual path to your `krb5-01.ini` file in your system.
+Ensure that the Hive JDBC client jar is in the JMeter classpath, and configure the Kerberos and Hadoop properties accordingly. This script uses the Apache Hive JDBC client to establish a connection to Hive and execute a query.
 
-After making this modification, you should be able to use your custom `krb5-01.ini` configuration file in your script for setting up the Kerberos configuration. Let me know if you encounter any issues or have further questions!
+If you face any issues or need further assistance, feel free to ask for help.
