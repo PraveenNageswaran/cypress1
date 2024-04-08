@@ -1,0 +1,8 @@
+def result = '[{name=Praveen,age=30,school=ehkn},{name=ellu,age=50,school=blindu}]'
+
+def jsonArray = result.tokenize("{},").findAll { it.trim().size() > 0 }.collect {
+    def parts = it.split("=")
+    [(parts[0]): parts[1]]
+}
+
+println jsonArray
