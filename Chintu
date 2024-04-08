@@ -1,0 +1,33 @@
+def file = new File('/path/to/your/file') // Replace '/path/to/your/file' with the path to your file
+
+// Check if the file exists
+if (file.exists()) {
+    // Read the content of the file
+    def content = file.text
+    // Split the content by lines
+    def lines = content.split('\n')
+    
+    // Initialize variables to store username and password
+    def username = null
+    def password = null
+    
+    // Iterate over each line
+    lines.each { line ->
+        // Check if the line contains 'User='
+        if (line.startsWith('User=')) {
+            // Extract the username
+            username = line.substring(line.indexOf('=') + 1).trim()
+        }
+        // Check if the line contains 'Password='
+        if (line.startsWith('Password=')) {
+            // Extract the password
+            password = line.substring(line.indexOf('=') + 1).trim()
+        }
+    }
+    
+    // Print the extracted username and password
+    println("Username: $username")
+    println("Password: $password")
+} else {
+    println("File not found!")
+}
