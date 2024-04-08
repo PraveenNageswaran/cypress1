@@ -1,0 +1,27 @@
+def inputFile = new File('/path/to/your/input/file.txt') // Replace '/path/to/your/input/file.txt' with the path to your input .txt file
+
+// Check if the input file exists
+if (inputFile.exists()) {
+    def username = null
+    def password = null
+    
+    // Read the file line by line
+    inputFile.eachLine { line ->
+        // Check if the line contains 'User='
+        if (line.startsWith('User=')) {
+            // Extract the username
+            username = line.substring(line.indexOf('=') + 1).trim()
+        }
+        // Check if the line contains 'Password='
+        if (line.startsWith('Password=')) {
+            // Extract the password
+            password = line.substring(line.indexOf('=') + 1).trim()
+        }
+    }
+    
+    // Print the extracted username and password
+    println("Username: $username")
+    println("Password: $password")
+} else {
+    println("Input file not found!")
+}
