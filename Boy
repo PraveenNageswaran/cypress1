@@ -1,0 +1,10 @@
+def result = '[{name=Praveen,age=30,school=ehkn},{name=ellu,age=50,school=blindu}]'
+
+def jsonArray = result.findAll(/\{(.*?)\}/).collect { match ->
+    def keyValuePairs = match[1..-2].split(',').collectEntries { pair ->
+        def parts = pair.split('=')
+        [(parts[0].trim()): parts[1].trim()]
+    }
+}
+
+println jsonArray
