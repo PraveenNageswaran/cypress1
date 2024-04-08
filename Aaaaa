@@ -1,0 +1,22 @@
+// Define paths for input and output files
+def inputFilePath = 'c:/misc/credentials' // Path to your input file
+def outputFilePath = 'c:/misc/credentials.txt' // Desired path for the output .txt file
+
+// Create File objects for input and output files
+def inputFile = new File(inputFilePath)
+def outputFile = new File(outputFilePath)
+
+// Check if the input file exists
+if (inputFile.exists()) {
+    // Read the content of the input file
+    def content = inputFile.text
+
+    // Write the content to the output .txt file
+    outputFile.withWriter { writer ->
+        writer.write(content)
+    }
+
+    println("File converted to .txt successfully. Output file: ${outputFile.absolutePath}")
+} else {
+    println("Input file not found!")
+}
