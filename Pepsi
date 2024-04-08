@@ -1,0 +1,24 @@
+Sure, I can provide you with an example of Groovy code that you can use to fetch files from a folder and print each file's name along with its type (assuming here "type" means the file extension which indicates the file format). This example uses basic Groovy file handling capabilities.
+
+```groovy
+def folderPath = '/path/to/your/folder' // Change this to the path of your folder
+
+// This closure will get the file extension
+def getFileExtension = { file ->
+    file.name.lastIndexOf('.').with { it != -1 ? file.name[it..-1] : '' }
+}
+
+// Creating a file object for the directory
+def folder = new File(folderPath)
+
+// Listing all files in the directory
+folder.listFiles().each { file ->
+    if(file.isFile()) { // Checking if the file object is indeed a file.
+        println "${file.name} - Type: ${getFileExtension(file)}"
+    }
+}
+```
+
+Make sure to replace `'/path/to/your/folder'` with the actual path of your folder. This code will list all the files in the specified directory and print each file's name along with its extension, which is being used as the file type in this context.
+
+Groovy's `listFiles()` method is used to list all files (and directories) in the specified directory, and then each file is checked to ensure it's not a directory itself before printing its name and type. The `getFileExtension` closure extracts the extension from the file name by finding the last index of `.` and grabbing the substring from that position to the end of the string, which effectively gives you the file extension. If a file does not have an extension, it returns an empty string as the type.
