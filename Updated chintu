@@ -1,0 +1,37 @@
+It seems like there's an issue with the method call `file.exists()` which is throwing a MissingMethodException. This usually happens when the method does not exist or there's an error in the way it's being called.
+
+Let's try another approach using Groovy's `withReader` method to read the file line by line. Here's the modified code:
+
+```groovy
+def file = new File('/path/to/your/file') // Replace '/path/to/your/file' with the path to your file
+
+// Check if the file exists
+if (file.isFile()) {
+    def username = null
+    def password = null
+    
+    // Read the file line by line
+    file.withReader { reader ->
+        reader.eachLine { line ->
+            // Check if the line contains 'User='
+            if (line.startsWith('User=')) {
+                // Extract the username
+                username = line.substring(line.indexOf('=') + 1).trim()
+            }
+            // Check if the line contains 'Password='
+            if (line.startsWith('Password=')) {
+                // Extract the password
+                password = line.substring(line.indexOf('=') + 1).trim()
+            }
+        }
+    }
+    
+    // Print the extracted username and password
+    println("Username: $username")
+    println("Password: $password")
+} else {
+    println("File not found!")
+}
+```
+
+This code should read the file line by line and extract the username and password accordingly. Make sure to replace `/path/to/your/file` with the actual path to your file.
