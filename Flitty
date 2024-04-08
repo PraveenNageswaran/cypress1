@@ -1,0 +1,24 @@
+Given your result set format, it looks like you're presenting a Groovy-like notation for a list of maps, each representing a row fetched from a database. To convert this data structure into a JSON array using Groovy, you can directly utilize Groovy's built-in JSON handling capabilities without needing to depend on external libraries such as `org.json`.
+
+Here is a simple Groovy script that demonstrates how to convert your table result into a JSON array:
+
+```groovy
+import groovy.json.JsonBuilder
+
+// Simulating your result set as a list of maps
+def results = [
+    [name: 'Praveen', degree: 'be', school: 'ehkn'],
+    [name: 'twinkle', degree: 'barch', school: 'ppt']
+]
+
+// Using JsonBuilder to convert the list of maps to a JSON array
+def jsonBuilder = new JsonBuilder(results)
+def jsonOutput = jsonBuilder.toPrettyString()
+
+// Printing the JSON output
+println(jsonOutput)
+```
+
+The `JsonBuilder` class from Groovy's `groovy.json` package is very convenient for converting complex data structures, including nested lists and maps, into JSON format. The `toPrettyString()` method generates a nicely formatted string representation of the JSON array, which is more readable but can be omitted in favor of `toString()` if you prefer a compact representation.
+
+This approach keeps your code Groovy-native and avoids the overhead of adding extra dependencies.
