@@ -1,0 +1,51 @@
+Certainly! Here is a simple example of a Groovy script for connecting to Hive with Kerberos authentication using a JSR223 Sampler in JMeter:
+
+```groovy
+import java.sql.*;
+
+// JDBC connection parameters
+def url = "jdbc:hive2://your-hive-hostname:10000/default;principal=hive/_HOST@YOUR-REALM";
+def driver = "org.apache.hive.jdbc.HiveDriver";
+
+// Kerberos authentication settings
+def keytabFile = "/path/to/your/keytab/file.keytab";
+def principal = "your_principal@YOUR-REALM";
+
+// Load the JDBC driver
+Class.forName(driver);
+
+// Authenticate with Kerberos using the keytab file
+System.setProperty("java.security.auth.login.config", "/path/to/your/jaas.conf");
+System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+System.setProperty("java.security.krb5.conf", "/path/to/your/krb5.conf");
+
+// Obtain a Kerberos ticket from the keytab
+String jaasConfig = "com.sun.security.auth.module.Krb5LoginModule required " +
+        "useKeyTab=true keyTab=\"" + keytabFile + "\" " +
+        "principal=\"" + principal + "\";";
+System.setProperty("java.security.auth.login.config", jaasConfig);
+
+// Establish the JDBC connection
+Connection conn = DriverManager.getConnection(url);
+Statement stmt = conn.createStatement();
+
+// Execute a sample query
+ResultSet rs = stmt.executeQuery("SELECT * FROM your_table LIMIT 10");
+while (rs.next()) {
+    // Process the results
+    log.info("Column 1: " + rs.getString(1) + ", Column 2: " + rs.getString(2));
+}
+
+// Close the resources
+rs.close();
+stmt.close();
+conn.close();
+```
+
+In this script:
+- Replace `your-hive-hostname`, `10000`, `YOUR-REALM`, `your_principal`, and other placeholders with your actual values.
+- Update the paths to your keytab file, jaas.conf, and krb5.conf files.
+- Customize the query in `executeQuery` to match your requirements.
+- Make sure to adjust the logging or error handling as needed for your specific use case.
+
+Save this script in a JSR223 Sampler in your JMeter test plan, set the language to Groovy, and execute the test to connect to Hive with Kerberos authentication and run the specified query.
