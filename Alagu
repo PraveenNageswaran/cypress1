@@ -1,8 +1,3 @@
-def jsonArray = result.split("=").collect {
-    it.contains(":") ? it : it.replaceAll(':', '=')
-}
-
-// Write JSON array to file
-new File('output.json').withWriter { writer ->
-    writer << new groovy.json.JsonBuilder(jsonArray).toPrettyString()
-}
+// Replace '=' with ':' and remove trailing '}' for each key-value pair
+def json = jsonString.replaceAll(/=/, ':').replaceAll(/([^{},]+)=([^{},]+)/, '"$1":"$2"')
+println JsonOutput.prettyPrint(JsonOutput.toJson(json))
