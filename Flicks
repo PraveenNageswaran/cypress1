@@ -1,0 +1,69 @@
+To add authentication and include the core-site.xml and hdfs-site.xml configurations in the Groovy script for connecting to Hive with Kerberos authentication, you can modify the script as follows:
+
+```groovy
+import java.sql.*;
+import java.io.File;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.UserGroupInformation;
+
+// JDBC connection parameters
+def url = "jdbc:hive2://your-hive-hostname:10000/default;principal=hive/_HOST@YOUR-REALM";
+def driver = "org.apache.hive.jdbc.HiveDriver";
+
+// Kerberos authentication settings
+def keytabFile = "/path/to/your/keytab/file.keytab";
+def principal = "your_principal@YOUR-REALM";
+def jaasConfigFile = "/path/to/your/jaas.conf";
+def krb5ConfigFile = "/path/to/your/krb5.conf";
+
+// Hadoop configuration files
+def coreSiteXmlFile = "/path/to/core-site.xml";
+def hdfsSiteXmlFile = "/path/to/hdfs-site.xml";
+
+// Load the JDBC driver
+Class.forName(driver);
+
+// Authenticate with Kerberos using the keytab file
+System.setProperty("java.security.auth.login.config", jaasConfigFile);
+System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+System.setProperty("java.security.krb5.conf", krb5ConfigFile);
+
+// Obtain a Kerberos ticket from the keytab
+String jaasConfig = "com.sun.security.auth.module.Krb5LoginModule required " +
+        "useKeyTab=true keyTab=\"" + keytabFile + "\" " +
+        "principal=\"" + principal + "\";";
+System.setProperty("java.security.auth.login.config", jaasConfig);
+
+// Load Hadoop configuration files
+Configuration configuration = new Configuration();
+configuration.addResource(new File(coreSiteXmlFile).toURI().toURL());
+configuration.addResource(new File(hdfsSiteXmlFile).toURI().toURL());
+
+// Authenticate with Hadoop using the keytab and principal
+UserGroupInformation.setConfiguration(configuration);
+UserGroupInformation.loginUserFromKeytab(principal, keytabFile);
+
+// Establish the JDBC connection
+Connection conn = DriverManager.getConnection(url);
+Statement stmt = conn.createStatement();
+
+// Execute a sample query
+ResultSet rs = stmt.executeQuery("SELECT * FROM your_table LIMIT 10");
+while (rs.next()) {
+    // Process the results
+    log.info("Column 1: " + rs.getString(1) + ", Column 2: " + rs.getString(2));
+}
+
+// Close the resources
+rs.close();
+stmt.close();
+conn.close();
+```
+
+In this modified script:
+- Update the paths to your core-site.xml and hdfs-site.xml files.
+- The script now loads the Hadoop configuration files using the Configuration class.
+- It authenticates with Hadoop using the keytab and principal with the help of UserGroupInformation.
+- Ensure that the paths to the keytab file, jaas.conf, krb5.conf, core-site.xml, and hdfs-site.xml files are correct and accessible by the script.
+
+By incorporating these changes, you can authenticate and include the necessary Hadoop configuration files for connecting to Hive with Kerberos authentication in JMeter using Groovy scripting. If you have any more questions or need further clarification, please feel free to ask!
