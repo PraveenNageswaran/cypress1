@@ -1,19 +1,20 @@
-def jsonString = "<your JSON string here>"
+Parse the JSON array
+def slurper = new JsonSlurper()
+def json = slurper.parseText(jsonString)
 
-// Perform operations on jsonString
-def modifiedString = jsonString
-    .replaceFirst(/^\[/, "") // Remove the leading '['
-    .replaceFirst(/\]$/, "") // Remove the trailing ']'
-    .replaceFirst(/\}$/, "") // Remove the trailing '}' after each key-value pair
-    .replaceFirst(/=/, ":") // Replace the first '=' with ':'
-    .replaceAll(/, /, ",") // Remove space after commas
-    .replaceAll(/([^{},]+)=([^{},]+)/, '"$1":"$2"') // Surround keys and values with double quotes
-    .split("\\},") // Split the string by '},' to form individual JSON objects
-    .collect { it + '}' } // Add back the '}' at the end of each object
-    .join(",") // Join the JSON objects with commas
-    .collect { "{" + it + "}" } // Add '{' and '}' to encapsulate each JSON object
-    .join(",") // Join the JSON objects with commas
-    .replaceFirst(/\[/, "[") // Add the leading '[' back
-    .replaceFirst(/\]$/, "]") // Add the trailing ']' back
+// Check if it's an array
+if (json instanceof List) {
+    // Create a new array to accommodate all records
+    def newArray = []
 
-println modifiedString
+    // Loop through each record in the JSON array
+    json.each { record ->
+        // Add each record to the new array
+        newArray.add(record)
+    }
+
+    // Print the new array with all records
+    println newArray
+} else {
+    println "Input is not a valid JSON array"
+}
