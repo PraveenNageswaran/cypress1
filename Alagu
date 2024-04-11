@@ -1,3 +1,13 @@
-// Replace '=' with ':' and remove trailing '}' for each key-value pair
-def json = jsonString.replaceAll(/=/, ':').replaceAll(/([^{},]+)=([^{},]+)/, '"$1":"$2"')
-println JsonOutput.prettyPrint(JsonOutput.toJson(json))
+.replaceFirst(/^\[/, "") // Remove the leading '['
+.replaceFirst(/\]$/, "") // Remove the trailing ']'
+.replaceFirst(/\}$/, "") // Remove the trailing '}' after each key-value pair
+.replaceFirst(/=/, ":") // Replace the first '=' with ':'
+.replaceAll(/, /, ",") // Remove space after commas
+.replaceAll(/([^{},]+)=([^{},]+)/, '"$1":"$2"') // Surround keys and values with double quotes
+.split("\\},") // Split the string by '},' to form individual JSON objects
+.collect { it + '}' } // Add back the '}' at the end of each object
+.join(",") // Join the JSON objects with commas
+.collect { "{" + it + "}" } // Add '{' and '}' to encapsulate each JSON object
+.join(",") // Join the JSON objects with commas
+.replaceFirst(/\[/, "[") // Add the leading '[' back
+.replaceFirst(/\]$/, "]") // Add the trailing ']' back
