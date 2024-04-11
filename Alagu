@@ -1,16 +1,11 @@
 def result = '<your_JSON_string_here>'
 
-def jsonArray = result.tokenize("[{").findAll { it.trim().size() > 0 }.collect { match ->
-    def keyValuePairs = match.tokenize(", ").collectEntries { pair ->
-        def parts = pair.split("=")
-        [(parts[0].trim()): parts[1].trim()]
-    }
-    new groovy.json.JsonBuilder(keyValuePairs).toString()
-}
+// Extract JSON objects using regular expressions
+def jsonObjects = result.findAll(/\{[^{}]+\}/)
 
-// Write JSON array to file
+// Write JSON objects to file
 new File('output.json').withWriter { writer ->
-    jsonArray.each { json ->
-        writer << json << '\n'
+    jsonObjects.each { jsonObject ->
+        writer << jsonObject << '\n'
     }
 }
