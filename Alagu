@@ -3,9 +3,10 @@ def result = '<your_JSON_string_here>'
 // Extract JSON objects using regular expressions
 def jsonObjects = result.findAll(/\{[^{}]+\}/)
 
-// Write JSON objects to file
+// Convert JSON objects to a JSON array
+def jsonArray = jsonObjects.collect { new groovy.json.JsonSlurper().parseText(it) }
+
+// Write JSON array to file
 new File('output.json').withWriter { writer ->
-    jsonObjects.each { jsonObject ->
-        writer << jsonObject << '\n'
-    }
+    writer << new groovy.json.JsonBuilder(jsonArray).toPrettyString()
 }
