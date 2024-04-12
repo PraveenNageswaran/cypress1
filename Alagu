@@ -1,18 +1,13 @@
-// Split the tableRecord string to extract scheme and eventbody
-def parts = tableRecord.substring(1, tableRecord.size() - 1).split(", ")
+def parseTableRecord(tableRecord) {
+    // Split the tableRecord string to extract key-value pairs
+    def pairs = tableRecord.substring(1, tableRecord.size() - 1).split(", ")
 
-// Extract scheme and eventbody
-def scheme = parts[0].split("=")[1]
-def eventBodyString = parts[1].split("=")[1]
-
-// Create JSON object for eventbody
-def eventBodyJson = [payload: eventBodyString]
-
-// Create JSON object for the whole record
-def jsonObject = [scheme: scheme, eventbody: eventBodyJson]
-
-// Write JSON object to file
-def outputFile = new File("output.json")
-outputFile << JsonOutput.toJson(jsonObject)
-
-println "JSON object stored in output.json"
+    // Create a map to store key-value pairs
+    def recordMap = [:]
+    
+    // Extract key-value pairs and add them to the map
+    pairs.each { pair ->
+        def keyValue = pair.split("=")
+        recordMap[keyValue[0]] = keyValue[1]
+    }
+    
