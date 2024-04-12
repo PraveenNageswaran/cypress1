@@ -1,13 +1,42 @@
-def parseTableRecord(tableRecord) {
-    // Split the tableRecord string to extract key-value pairs
-    def pairs = tableRecord.substring(1, tableRecord.size() - 1).split(", ")
+groovy
+import org.json.JSONArray
+import org.json.JSONObject
+import java.nio.file.*
 
-    // Create a map to store key-value pairs
-    def recordMap = [:]
-    
-    // Extract key-value pairs and add them to the map
-    pairs.each { pair ->
-        def keyValue = pair.split("=")
-        recordMap[keyValue[0]] = keyValue[1]
+// Get the records array from vars
+def records = vars.get("records")
+
+// Create a JSONArray to store the converted records
+def jsonArray = new JSONArray()
+
+// Function to check if a string is XML
+def isXMLString(String str) {
+    return str.trim().startsWith("<") && str.trim().endsWith(">")
+}
+
+// Iterate through each record in the array
+records.each { record ->
+    def jsonRecord = new JSONObject()
+    record.each { key, value ->
+        if (value instanceof Map) {
+            def nestedObject = new JSONObject()
+            value.each { nestedKey, nestedValue ->
+                if (nestedValue instanceof String && isXMLString(nestedValue)) {
+                    nestedObject.put(nestedKey, nestedValue)
+                } else {
+                    nestedObject.put(nestedKey, nestedValue)
+                }
+            }
+            jsonRecord.put(key, nestedObject)
+        } else {
+            jsonRecord.put(key, value)
+        }
     }
-    
+    jsonArray.put(jsonRecord)
+}
+
+// Define the file path to store the JSON data
+def filePath = "path/to/your/file.json"
+
+// Write the JSON array to a file
+Files.write(Paths.get(filePath), jsonArray.toString(2).getBytes())
