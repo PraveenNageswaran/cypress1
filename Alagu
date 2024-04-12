@@ -1,15 +1,18 @@
-// Remove square brackets
-def jsonString = tableRecord.substring(1, tableRecord.size() - 1)
+// Split the tableRecord string to extract scheme and eventbody
+def parts = tableRecord.substring(1, tableRecord.size() - 1).split(", ")
 
-// Convert to JSON
-def jsonSlurper = new JsonSlurper()
-def jsonObject = jsonSlurper.parseText(jsonString)
+// Extract scheme and eventbody
+def scheme = parts[0].split("=")[1]
+def eventBodyString = parts[1].split("=")[1]
 
-// Convert to JSON array
-def jsonArray = [jsonObject]
+// Create JSON object for eventbody
+def eventBodyJson = [payload: eventBodyString]
 
-// Write JSON array to file
+// Create JSON object for the whole record
+def jsonObject = [scheme: scheme, eventbody: eventBodyJson]
+
+// Write JSON object to file
 def outputFile = new File("output.json")
-outputFile << JsonOutput.toJson(jsonArray)
+outputFile << JsonOutput.toJson(jsonObject)
 
-println "JSON array stored in output.json"
+println "JSON object stored in output.json"
