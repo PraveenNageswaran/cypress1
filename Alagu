@@ -1,6 +1,8 @@
 groovy
 import org.json.JSONArray
 import org.json.JSONObject
+import groovy.util.XmlSlurper
+import groovy.json.JsonSlurper
 import java.nio.file.*
 
 // Get the records array from vars
@@ -9,9 +11,24 @@ def records = vars.get("records")
 // Create a JSONArray to store the converted records
 def jsonArray = new JSONArray()
 
+// Function to check if a string is JSON
+def isJSONString(String str) {
+    try {
+        new JsonSlurper().parseText(str)
+        return true
+    } catch (Exception e) {
+        return false
+    }
+}
+
 // Function to check if a string is XML
 def isXMLString(String str) {
-    return str.trim().startsWith("<") && str.trim().endsWith(">")
+    try {
+        new XmlSlurper().parseText(str)
+        return true
+    } catch (Exception e) {
+        return false
+    }
 }
 
 // Iterate through each record in the array
@@ -21,8 +38,14 @@ records.each { record ->
         if (value instanceof Map) {
             def nestedObject = new JSONObject()
             value.each { nestedKey, nestedValue ->
-                if (nestedValue instanceof String && isXMLString(nestedValue)) {
-                    nestedObject.put(nestedKey, nestedValue)
+                if (nestedValue instanceof String) {
+                    if (isJSONString(nestedValue)) {
+                        nestedObject.put(nestedKey, new JsonSlurper().parseText(nestedValue))
+                    } else if (isXMLString(nestedValue)) {
+                        nestedObject.put(nestedKey, new XmlSlurper().parseText(nestedValue))
+                    } else {
+                        nestedObject.put(nestedKey, nestedValue)
+                    }
                 } else {
                     nestedObject.put(nestedKey, nestedValue)
                 }
