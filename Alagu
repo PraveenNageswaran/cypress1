@@ -1,65 +1,34 @@
-groovy
-import org.json.JSONArray
-import org.json.JSONObject
-import groovy.util.XmlSlurper
-import groovy.json.JsonSlurper
-import java.nio.file.*
+import groovy.json.JsonOutput
 
-// Get the records array from vars
-def records = vars.get("records")
+// Assuming the variable 'records' contains the provided data
+def records = "[{scheme=CBPR, eventbody={payload=null, status=Sanctions OK, statuscode=null, statusdescription=null, additionalnessage=<?xml version-\"1.0\" encoding-\"UTF-8\" 2>\\n<soapenv:Envelope xmlns:OPRskMgt=\"http:/lcom/rbsg/soa/c04OPavmentManagement/OperationalRiskManagement/v02/\" xmlns :soapenv http:L/schemas.xnlsoap.Org/soap/envelope/\">\\n<soapenv: Body><oPRS kMgt:evaluatePa ymentInstructionForAMLResponse><response><responseHeader responseId><systemId>ESP</systemId>KtransactionId> lnls31206b5 3d660 ael3ade 9 6d6212 024 0401173050538n</transactionId></response Id><operatingBrand> ALI</operatingBrand><refRequestIds>xsystemId>SourceID</systemId><transactionId>PRS</transactionId></re RequestID</systemId><transactionId>f7802 f yy 9e-84da-4d2 4-b6ad-46acBf50d63f</transactionIdx/re fRequestIdsXcmdType>Response</cmdType><cmdstatus> Succeeded</cmdStatus><cmdNotifications><returnCode>0</returnCode>Kcategory>Success</ category>xdescription>Success</description systemNotifications><returnCode>000</ręturnCode><category>Success</category><description>No Hit</description>xprocessingId><systemId>AMI</ systemId><transactionId>f7 802f9e-84da-4 d2 4 -b 6ad- 4 6ac8f50d63f</transactibnId>/processingId>x/systemNotifications></ cmdNotifications></ responseHeader><paymentInstructionAMLAssessment>XresultXschemeName>VerificationResultType</schemeNamexcodeValue>Passed</codeValue></result>< paynentInstructinAMLAssessment></response></OPRS kMgt:evaluatePaymentInstructionForAMILResponsex/soapenv: Body></soapenv : Envelope>", otherlnfo=null}, messagetype=pacs. 009}, {scheme=CBPR, eventbody={payload=null, status=Message Sent, statuscode=null, statusdescription=null, additionalmessage=null, otherinfo=null}, messagetype=pacs.008}, {scheme=CBPR, eventbody={payload=null, status=Sanctions OK, statuscode=null, statusdescription=null, additionalmeassage=<?xml version=\"1.0\" encoding-\"UTF-8\"2>, eventbody={payload=null, status=sWIFT NAK Received statuscode, statusdescription=null, additionalmeassage=<?xml version=\"1.0\" encoding-\"UTF-8\"2>, AMP=<AMP xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" xrnlns:xsi=\"http://www.w3.org/2001/XMISchema-instance\">\\n<Status>\\n<CurrentStatus>\\n<Status>FinalCancelledAuto Cancellation</Status>\\n<StatusGranularity>\\n<Phase>Final</Phase>\\n<Action>Cancelled</Action>\\n</StatusGranularity>\\n<Header>\\n<Reason>Auto Cancellation</Reason>\\n</Header>\\n<StatusDate>2 024-04-01T14 :49:54, 74 6+01 :00</StatusDate>\\n<Status Change Source>sTP1- PN1</StatusChangeSource>\\n<Message>Bus iness Address for receiver VTSsGB2 0XXx not found in address book</Me ssage>\\n</CurrentStatus>\\n<Direction>ROUT ING</Direction>\\n<Protocol>Swift-FIN</Protocol>\\n<SenderAddress>NWBKGB2 0XXX</Sende rAddress>\\n<ReceiverAddress>VTSSGB2 0XXX</ReceiverAddress>\\n<fRequestIds><refRequestIds><systemId>\\n</Header>\\n<FlexFields>\\n<string 255 01> PRSftMG6KUZhVBl</string 255 01>\\n<TextPayload>ezE6RjIxTldcs0dcMj BYWEhYMDAWMDAWMDAwMH17NDp7MTc30j IOMDQWMTE OND1 9ezQ1MToxfXs 0MDU6QU1 I fXSXMDg 6T1 BGMikzMTI 3Mid9fQ-</TextPayload>\\n</ResponseStorage>\\n</Data>\\n</AMP>", otherinfo=null}, messagetype=mt900}]"
 
-// Create a JSONArray to store the converted records
-def jsonArray = new JSONArray()
+// Splitting the records by '}), {' to separate individual events
+def events = records.split('\\}), \\{')
 
-// Function to check if a string is JSON
-def isJSONString(String str) {
-    try {
-        new JsonSlurper().parseText(str)
-        return true
-    } catch (Exception e) {
-        return false
+// Processing each event and extracting necessary information
+def jsonArray = []
+events.each { event ->
+    // Creating a map to store the key-value pairs
+    def eventMap = [:]
+    
+    // Splitting the event by ',' to separate key-value pairs
+    def pairs = event.split(', ')
+    pairs.each { pair ->
+        // Splitting each pair by '=' to separate key and value
+        def keyValue = pair.split('=')
+        // Extracting key and value and removing any leading/trailing spaces
+        def key = keyValue[0].trim()
+        def value = keyValue[1].trim()
+        // Adding key-value pair to the map
+        eventMap[key] = value
     }
+    // Adding the map to the JSON array
+    jsonArray.add(eventMap)
 }
 
-// Function to check if a string is XML
-def isXMLString(String str) {
-    try {
-        new XmlSlurper().parseText(str)
-        return true
-    } catch (Exception e) {
-        return false
-    }
-}
+// Converting the JSON array to a JSON string
+def jsonString = JsonOutput.toJson(jsonArray)
 
-// Iterate through each record in the array
-records.each { record ->
-    def jsonRecord = new JSONObject()
-    record.each { key, value ->
-        if (value instanceof Map) {
-            def nestedObject = new JSONObject()
-            value.each { nestedKey, nestedValue ->
-                if (nestedValue instanceof String) {
-                    if (isJSONString(nestedValue)) {
-                        nestedObject.put(nestedKey, new JsonSlurper().parseText(nestedValue))
-                    } else if (isXMLString(nestedValue)) {
-                        nestedObject.put(nestedKey, new XmlSlurper().parseText(nestedValue))
-                    } else {
-                        nestedObject.put(nestedKey, nestedValue)
-                    }
-                } else {
-                    nestedObject.put(nestedKey, nestedValue)
-                }
-            }
-            jsonRecord.put(key, nestedObject)
-        } else {
-            jsonRecord.put(key, value)
-        }
-    }
-    jsonArray.put(jsonRecord)
-}
-
-// Define the file path to store the JSON data
-def filePath = "path/to/your/file.json"
-
-// Write the JSON array to a file
-Files.write(Paths.get(filePath), jsonArray.toString(2).getBytes())
+// Printing the JSON string
+println(jsonString)
