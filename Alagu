@@ -1,20 +1,37 @@
-Parse the JSON array
-def slurper = new JsonSlurper()
-def json = slurper.parseText(jsonString)
+// Remove brackets and split by commas
+def records = tableRecord.substring(1, tableRecord.length() - 1).split(',')
 
-// Check if it's an array
-if (json instanceof List) {
-    // Create a new array to accommodate all records
-    def newArray = []
+// Create a JSONArray to store records
+def jsonArray = new JSONArray()
 
-    // Loop through each record in the JSON array
-    json.each { record ->
-        // Add each record to the new array
-        newArray.add(record)
+// Iterate over records and create JSON objects
+def mainObject = new JSONObject()
+records.each { record ->
+    def keyValue = record.split('=')
+    def key = keyValue[0].trim()
+    def value = keyValue[1].trim()
+
+    // Check if the value is an XML payload
+    if (value.startsWith("<") && value.endsWith(">")) {
+        def eventbody = new JSONObject()
+        eventbody.put("payload", value)
+        mainObject.put(key, eventbody)
+    } else {
+Apologies for the interruption. Here's the continuation and completion of the script:
+
+```groovy
+        mainObject.put(key, value)
     }
-
-    // Print the new array with all records
-    println newArray
-} else {
-    println "Input is not a valid JSON array"
 }
+
+// Add the main object to the JSONArray
+jsonArray.add(mainObject)
+
+// Write the JSONArray to a JSON file
+def outputFile = new File("output.json")
+outputFile.text = JsonOutput.prettyPrint(jsonArray.toString())
+
+println "JSON data has been written to output.json file."
+```
+
+This script will dynamically handle the XML payload within the table records and place it inside the "payload" field within the "eventbody" object. It then writes the resulting JSON array to a file named "output.json".
