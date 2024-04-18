@@ -6,6 +6,8 @@ import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.Statement
 import java.sql.ResultSetMetaData
+import java.nio.file.Files
+import java.nio.file.Paths
 
 // Kerberos settings
 System.setProperty("java.security.krb5.realm", "YOUR_REALM")
@@ -44,8 +46,9 @@ while (rs.next()) {
     jsonArray.put(jsonObject)
 }
 
-// Print or use the JSONArray as needed
-log.info("JSONArray: " + jsonArray.toString())
+// Write JSONArray to file
+String filePath = "output.json"
+Files.write(Paths.get(filePath), jsonArray.toString(4).getBytes())
 
 // Close ResultSet, Statement, and Connection
 rs.close()
