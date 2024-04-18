@@ -1,0 +1,53 @@
+import org.apache.hadoop.security.UserGroupInformation
+import org.json.JSONArray
+import org.json.JSONObject
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.Statement
+import java.sql.ResultSetMetaData
+
+// Kerberos settings
+System.setProperty("java.security.krb5.realm", "YOUR_REALM")
+System.setProperty("java.security.krb5.kdc", "YOUR_KDC_SERVER")
+
+// Authenticate with Kerberos
+def user = "YOUR_PRINCIPAL"
+def keytab = "path/to/your/keytab/file.keytab"
+UserGroupInformation.loginUserFromKeytab(user, keytab)
+
+// JDBC connection settings
+def hiveJdbcUrl = "jdbc:hive2://YOUR_HIVE_SERVER:PORT/default;principal=hive/_HOST@YOUR_REALM"
+
+// Load JDBC driver
+Class.forName("org.apache.hive.jdbc.HiveDriver")
+
+// Establish connection to Hive
+Connection conn = DriverManager.getConnection(hiveJdbcUrl)
+
+// Execute Hive query
+Statement stmt = conn.createStatement()
+ResultSet rs = stmt.executeQuery("SELECT * FROM your_table")
+
+// Convert ResultSet to JSONArray dynamically
+JSONArray jsonArray = new JSONArray()
+ResultSetMetaData metaData = rs.getMetaData()
+int columnCount = metaData.getColumnCount()
+
+while (rs.next()) {
+    JSONObject jsonObject = new JSONObject()
+    for (int i = 1; i <= columnCount; i++) {
+        String columnName = metaData.getColumnName(i)
+        String columnValue = rs.getString(i)
+        jsonObject.put(columnName, columnValue)
+    }
+    jsonArray.put(jsonObject)
+}
+
+// Print or use the JSONArray as needed
+log.info("JSONArray: " + jsonArray.toString())
+
+// Close ResultSet, Statement, and Connection
+rs.close()
+stmt.close()
+conn.close()
