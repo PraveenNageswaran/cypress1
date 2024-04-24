@@ -1,0 +1,19 @@
+// Initialize an empty list to hold JSON strings
+def jsonList = []
+
+// Your loop controller code here
+// Assuming 'result' gets updated dynamically in each iteration
+
+// Appending the dynamically generated JSON string to the list
+def keyValuePairs = result.tokenize("[{").findAll { it.trim().size() > 0 }.collect { match ->
+    def parts = match.tokenize(", ").collectEntries { pair ->
+        def keyValue = pair.split("=")
+        [(keyValue[0].trim()): keyValue[1].trim()]
+    }
+    parts // Return the map directly
+}
+
+jsonList.addAll(keyValuePairs)
+
+// Convert the list to a single JSON array
+def jsonArray = new groovy.json.JsonBuilder(jsonList).toPrettyString()
