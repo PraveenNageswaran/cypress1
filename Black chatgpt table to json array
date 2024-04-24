@@ -1,19 +1,19 @@
 // Initialize an empty list to hold JSON strings
 def jsonList = []
 
-// Your loop controller code here
-// Assuming 'result' gets updated dynamically in each iteration
+// Tokenize the result string to extract JSON-like substrings
+def jsonSubstrings = result.split("(?<=})\\[")
 
-// Appending the dynamically generated JSON string to the list
-def keyValuePairs = result.tokenize("[{").findAll { it.trim().size() > 0 }.collect { match ->
-    def parts = match.tokenize(", ").collectEntries { pair ->
+// Iterate through each JSON-like substring
+jsonSubstrings.each { jsonString ->
+    // Extract key-value pairs from the substring
+    def parts = jsonString.tokenize(", ").collectEntries { pair ->
         def keyValue = pair.split("=")
         [(keyValue[0].trim()): keyValue[1].trim()]
     }
-    parts // Return the map directly
+    // Add the extracted key-value pairs to the list
+    jsonList.add(parts)
 }
-
-jsonList.addAll(keyValuePairs)
 
 // Convert the list to a single JSON array
 def jsonArray = new groovy.json.JsonBuilder(jsonList).toPrettyString()
