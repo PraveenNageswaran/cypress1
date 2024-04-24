@@ -1,18 +1,16 @@
 // Initialize an empty list to hold JSON strings
 def jsonList = []
 
-// Tokenize the result string to extract JSON-like substrings
-def jsonSubstrings = result.split("(?<=})\\[")
+// Use regular expression to extract JSON-like substrings
+def matcher = (result =~ /\{(?:[^{}]|(?:\{(?:[^{}]|(?1))*\}))*\}/)
 
-// Iterate through each JSON-like substring
-jsonSubstrings.each { jsonString ->
-    // Extract key-value pairs from the substring
-    def parts = jsonString.tokenize(", ").collectEntries { pair ->
-        def keyValue = pair.split("=")
-        [(keyValue[0].trim()): keyValue[1].trim()]
-    }
-    // Add the extracted key-value pairs to the list
-    jsonList.add(parts)
+// Iterate through each match and parse the JSON
+matcher.each { match ->
+    // Parse the JSON-like substring
+    def json = new groovy.json.JsonSlurper().parseText(match.group())
+
+    // Add the parsed JSON to the list
+    jsonList.add(json)
 }
 
 // Convert the list to a single JSON array
