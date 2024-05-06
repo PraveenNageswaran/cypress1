@@ -1,0 +1,38 @@
+// Get the XML responses
+def xml1 = prev.getResponseDataAsString(); // Assuming the first XML response is in the previous response
+def xml2 = vars.get("xml2"); // Assuming the second XML response is stored in a JMeter variable named "xml2"
+
+// Parse the XML responses using XmlSlurper
+def parser = new XmlSlurper();
+def root1 = parser.parseText(xml1);
+def root2 = parser.parseText(xml2);
+
+// Compare the XML structures
+def mismatchedTags = [];
+
+// Function to recursively compare XML structures
+def compareXMLNodes(node1, node2) {
+    if (node1.name() != node2.name()) {
+        mismatchedTags.add([tag: node1.name(), value1: node1.text(), value2: node2.text()]);
+        return;
+    }
+    if (node1.attributes() != node2.attributes()) {
+        mismatchedTags.add([tag: node1.name(), value1: node1.text(), value2: node2.text()]);
+    }
+    def children1 = node1.children();
+    def children2 = node2.children();
+    if (children1.size() != children2.size()) {
+        mismatchedTags.add([tag: node1.name(), value1: node1.text(), value2: node2.text()]);
+        return;
+    }
+    for (int i = 0; i < children1.size(); i++) {
+        compareXMLNodes(children1[i], children2[i]);
+    }
+}
+
+compareXMLNodes(root1, root2);
+
+// Print the mismatched tags and values
+mismatchedTags.each { tagInfo ->
+    log.info("Mismatched tag: ${tagInfo.tag}, Value1: ${tagInfo.value1}, Value2: ${tagInfo.value2}");
+}
