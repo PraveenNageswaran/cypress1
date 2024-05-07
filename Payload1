@@ -1,0 +1,42 @@
+import groovy.json.JsonSlurper
+import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.XMLUnit
+import org.w3c.dom.Node
+
+// JSON strings for payload and payload2
+def payloadJson = '''
+{
+  "payload": "<root>\n    <person>\n        <name>John Doe</name>\n        <age>30</age>\n        <address>\n            <street>Main Street</street>\n            <city>Cityville</city>\n            <zip>12345</zip>\n        </address>\n        <contacts>\n            <email>john.doe@example.com</email>\n            <phone>555-123-4567</phone>\n        </contacts>\n    </person>\n    <person>\n        <name>Jane Smith</name>\n        <age>25</age>\n        <address>\n            <street>First Avenue</street>\n            <city>Townsville</city>\n            <zip>54321</zip>\n        </address>\n        <contacts>\n            <email>jane.smith@example.com</email>\n            <phone>555-987-6543</phone>\n        </contacts>\n    </person>\n</root>"
+}
+'''
+
+def payload2Json = '''
+{
+  "payload2": "<root>\n    <person>\n        <name>John Doe</name>\n        <age>30</age>\n        <address>\n            <street>Main Street</street>\n            <city>Cityville</city>\n            <zip>12345</zip>\n        </address>\n        <contacts>\n            <email>john.doe@example.com</email>\n            <phone>555-123-4567</phone>\n        </contacts>\n    </person>\n    <person>\n        <name>Jane Smith</name>\n        <age>25</age>\n        <address>\n            <street>First Avenue</street>\n            <city>Townsville</city>\n            <zip>54321</zip>\n        </address>\n        <contacts>\n            <email>jane.smith@example.com</email>\n            <phone>555-987-6543</phone>\n        </contacts>\n    </person>\n</root>"
+}
+'''
+
+// Parse JSON strings
+def jsonSlurper = new JsonSlurper()
+def payloadMap = jsonSlurper.parseText(payloadJson)
+def payload2Map = jsonSlurper.parseText(payload2Json)
+
+// Extract XML payloads
+def payloadXml = payloadMap.payload
+def payload2Xml = payload2Map.payload2
+
+// Compare XML payloads
+XMLUnit.setIgnoreWhitespace(true)
+def diff = new Diff(payloadXml, payload2Xml)
+def detailedDifferences = diff.getAllDifferences()
+
+// Print tag name if there's a mismatch in values
+if (detailedDifferences) {
+    detailedDifferences.each { difference ->
+        def controlNode = difference.getControlNodeDetail().getNode()
+        def tagName = controlNode.getNodeName()
+        log.info "Mismatch in value for tag: ${tagName}"
+    }
+} else {
+    log.info "No mismatch in values between XML payloads."
+}
