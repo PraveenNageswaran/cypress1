@@ -1,0 +1,51 @@
+import groovy.util.XmlSlurper
+
+// Get the values of payload and payload2 from JMeter variables
+def payloadXml = vars.get("payload")
+def payload2Xml = vars.get("payload2")
+
+// Parse XML payloads
+def xmlSlurper = new XmlSlurper()
+def payloadXmlParsed = xmlSlurper.parseText(payloadXml)
+def payload2XmlParsed = xmlSlurper.parseText(payload2Xml)
+
+// Compare XML payloads
+def differences = compareXml(payloadXmlParsed, payload2XmlParsed)
+
+// Print tag hierarchy if there's a mismatch in values
+if (differences) {
+    differences.each { diff ->
+        def tagName = diff.name()
+        def hierarchy = []
+        def currentNode = diff
+        while (currentNode.parent() != null) {
+            hierarchy.add(0, currentNode.parent().name())
+            currentNode = currentNode.parent()
+        }
+        log.info "Mismatch in value for tag hierarchy: ${hierarchy.join(" > ")}"
+    }
+} else {
+    log.info "No mismatch in values between XML payloads."
+}
+
+// Function to compare XML nodes recursively
+def compareXml(node1, node2) {
+    if (node1.name() != node2.name()) {
+        return [node1, node2]
+    }
+    if (node1.text() != node2.text()) {
+        return [node1, node2]
+    }
+    def children1 = node1.children()
+    def children2 = node2.children()
+    if (children1.size() != children2.size()) {
+        return [node1, node2]
+    }
+    for (int i = 0; i < children1.size(); i++) {
+        def childDiff = compareXml(children1[i], children2[i])
+        if (childDiff) {
+            return childDiff
+        }
+    }
+    return null
+}
