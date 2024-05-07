@@ -1,0 +1,35 @@
+Below is a sample code snippet in Groovy for a JSR223 Sampler in Apache JMeter that navigates through each tag in the XML payload and structure to validate the values and print if there is a mismatch:
+
+```groovy
+import groovy.util.XmlSlurper
+
+// Get the XML payload and structure from JMeter variables
+def payload = vars.get("payload")
+def payload2 = vars.get("payload2")
+
+// Parse the XML strings
+def xml = new XmlSlurper().parseText(payload)
+def xmlStructure = new XmlSlurper().parseText(payload2)
+
+// Function to recursively navigate through XML nodes
+def validateXmlValues(node, nodeStructure) {
+    // Check if the current node has text content (value)
+    if (node.text() && nodeStructure.text() && node.text() != nodeStructure.text()) {
+        // Print if there is a mismatch in values
+        log.info("Mismatch: Expected value '${nodeStructure.text()}', but found '${node.text()}'")
+    }
+    
+    // Recursive navigation through child nodes
+    node.children().each { child ->
+        def childStructure = nodeStructure.children().find{ it.name() == child.name() }
+        if (childStructure) {
+            validateXmlValues(child, childStructure)
+        }
+    }
+}
+
+// Start validation by navigating through the XML structure
+validateXmlValues(xml, xmlStructure)
+```
+
+Ensure that you have the necessary JMeter configurations and dependencies set up to run Groovy scripts in JSR223 Sampler. This script will compare the values of each corresponding tag in the XML payload and structure and print a message if there is a mismatch between them.
