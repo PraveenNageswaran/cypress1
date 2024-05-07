@@ -1,0 +1,30 @@
+import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.XMLUnit
+import org.w3c.dom.Node
+
+// Get the values of payload and payload2 from JMeter variables
+def payloadXml = vars.get("payload")
+def payload2Xml = vars.get("payload2")
+
+// Compare XML payloads
+def differences = compareXml(payloadXml, payload2Xml)
+
+// Print tag name if there's a mismatch in values
+if (differences) {
+    differences.each { diff ->
+        log.info "Mismatch in value for tag: ${diff.name()}"
+    }
+} else {
+    log.info "No mismatch in values between XML payloads."
+}
+
+// Function to compare XML nodes recursively
+def compareXml(xml1, xml2) {
+    XMLUnit.setIgnoreWhitespace(true)
+    def diff = new Diff(xml1, xml2)
+    if (diff.similar()) {
+        return null
+    } else {
+        return diff.getAllDifferences()
+    }
+}
