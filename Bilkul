@@ -1,0 +1,56 @@
+If you want to compare and validate the values between `payload` and `payload2`, you can modify the code to compare the corresponding nodes in both XML payloads. Here's an updated version of the code snippet that compares the values between `payload` and `payload2`:
+
+```groovy
+import org.w3c.dom.Document
+import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilderFactory
+
+// Retrieve the XML payloads from the variables using the names you have stored them in
+def payload = vars.get("payload")
+def payload2 = vars.get("payload2")
+
+// Function to validate XML content between two payloads
+def validateXmlComparison(String xml1, String xml2) {
+    def docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    def inputSource1 = new InputSource(new StringReader(xml1))
+    def doc1 = docBuilder.parse(inputSource1)
+    def rootNode1 = doc1.getDocumentElement()
+    
+    def inputSource2 = new InputSource(new StringReader(xml2))
+    def doc2 = docBuilder.parse(inputSource2)
+    def rootNode2 = doc2.getDocumentElement()
+
+    // Validate the structure and content of the XML nodes between the two payloads
+    validateNodeComparison(rootNode1, rootNode2)
+}
+
+// Function to validate a single XML node and compare between two payloads
+def validateNodeComparison(node1, node2) {
+    def children1 = node1.getChildNodes()
+    def children2 = node2.getChildNodes()
+
+    for (int i = 0; i < children1.getLength(); i++) {
+        def child1 = children1.item(i)
+        def child2 = children2.item(i)
+
+        // Check if the nodes have text content
+        if (child1.getNodeType() == org.w3c.dom.Node.TEXT_NODE && child2.getNodeType() == org.w3c.dom.Node.TEXT_NODE) {
+            // Perform text content comparison logic here
+            if (!child1.getTextContent().trim().equals(child2.getTextContent().trim())) {
+                // Log an error if the text content does not match
+                log.error("${node1.getNodeName()} ${child1.getNodeName()} values in the two payloads do not match. Payload 1 value: ${child1.getTextContent()}, Payload 2 value: ${child2.getTextContent()}")
+            }
+        } else {
+            // If the nodes do not have text content, recursively compare their child nodes
+            validateNodeComparison(child1, child2)
+        }
+    }
+}
+
+// Validate and compare the XML nodes between the two payloads
+validateXmlComparison(payload, payload2)
+```
+
+This code snippet compares the XML structure and content between `payload` and `payload2` by iterating through the nodes and comparing the corresponding values. If any discrepancies are found between the two payloads, it will log an error with details of the mismatched values.
+
+Feel free to adjust the comparison logic based on your specific validation requirements. Let me know if you need further assistance or modifications to this script!
