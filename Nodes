@@ -1,0 +1,56 @@
+Here is a sample code snippet for a JSR223 Sampler in JMeter that validates the XML structure and content as per your described logic:
+
+```groovy
+import org.w3c.dom.Document
+import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilderFactory
+
+// Retrieve the XML payload from the variables using the names you have stored them in
+def payload = vars.get("payload")
+def payload2 = vars.get("payload2")
+
+// Function to validate XML content recursively
+def validateXml(String xml) {
+    def docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    def inputSource = new InputSource(new StringReader(xml))
+    def doc = docBuilder.parse(inputSource)
+    def rootNode = doc.getDocumentElement()
+
+    def currentNode = rootNode
+
+    // Validate each node
+    validateNode(currentNode)
+}
+
+// Function to validate a single XML node and its children
+def validateNode(node) {
+    def children = node.getChildNodes()
+
+    for (int i = 0; i < children.getLength(); i++) {
+        def child = children.item(i)
+
+        // Check if the node has text content
+        if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE) {
+            // Perform text content validation logic here
+            // For demonstration, let's assume we are checking if the text is not empty
+            if (child.getTextContent().trim().isEmpty()) {
+                // Log an error if text content is empty
+                log.error("${node.getNodeName()} ${child.getNodeName()} has error. Expected value is NOT EMPTY. Actual value is ${child.getTextContent()}")
+            }
+        } else {
+            // If the node does not have text content, recursively validate its child nodes
+            validateNode(child)
+        }
+    }
+}
+
+// Validate the first XML payload
+validateXml(payload)
+
+// Validate the second XML payload
+validateXml(payload2)
+```
+
+You can customize the text content validation logic within the `validateNode` function as per your specific requirements. This code snippet will navigate through each tag in the XML structure, check for text content based on the described logic, and log any errors found during the validation process.
+
+Remember to adjust the validation logic according to your specific validation requirements. Let me know if you need further assistance or modifications to this script!
