@@ -1,0 +1,34 @@
+To validate the values in the current tag, regardless of whether it is a parent or child tag, you can modify the script to recursively check the values at the current node level before moving on to the child nodes. Here's an updated script to achieve this:
+
+```groovy
+import groovy.util.XmlSlurper
+
+// Get the XML payload and structure from JMeter variables
+def payload = vars.get("payload")
+def payload2 = vars.get("payload2")
+
+// Parse the XML strings
+def xml = new XmlSlurper().parseText(payload)
+def xmlStructure = new XmlSlurper().parseText(payload2)
+
+// Function to validate XML values in the current tag
+def validateXmlValues(node, nodeStructure) {
+    // Validate current node's value
+    if (node.text() && nodeStructure.text() && node.text() != nodeStructure.text()) {
+        log.info("Mismatch at node '${node.name()}': Expected value '${nodeStructure.text()}', but found '${node.text()}'")
+    }
+
+    // Validate child nodes
+    node.children().each { child ->
+        def childStructure = nodeStructure.children().find{ it.name() == child.name() }
+        if (childStructure) {
+            validateXmlValues(child, childStructure)
+        }
+    }   
+}
+
+// Start validation by navigating through the XML structure
+validateXmlValues(xml, xmlStructure)
+```
+
+This script will validate the values in the current tag, whether it is a parent or child node. It will first check the values at the current node level and then recursively validate the values of the child nodes. If a mismatch is found in any value, it will be logged with the node name and the expected and actual values.
