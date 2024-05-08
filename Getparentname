@@ -1,0 +1,59 @@
+To get the parent list of a specific node using the `node1.getNodeName()`, you can modify the existing code to traverse up the XML hierarchy and build a list of parent node names. Here's an updated version of the code snippet that includes a function to get the parent list of a given node name:
+
+```groovy
+import org.w3c.dom.Document
+import org.xml.sax.InputSource
+import javax.xml.parsers.DocumentBuilderFactory
+
+// Retrieve the XML payloads from the variables using the names you have stored them in
+def payload = vars.get("payload")
+def payload2 = vars.get("payload2")
+
+// Function to validate XML content between two payloads
+def validateXmlComparison(String xml1, String xml2) {
+    def docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    def inputSource1 = new InputSource(new StringReader(xml1))
+    def doc1 = docBuilder.parse(inputSource1)
+    def rootNode1 = doc1.getDocumentElement()
+    
+    def inputSource2 = new InputSource(new StringReader(xml2))
+    def doc2 = docBuilder.parse(inputSource2)
+    def rootNode2 = doc2.getDocumentElement()
+
+    // Validate the structure and content of the XML nodes between the two payloads
+    validateNodeComparison(rootNode1, rootNode2)
+}
+
+// Function to validate a single XML node and compare between two payloads
+def validateNodeComparison(node1, node2, parentList = []) {
+    def children1 = node1.getChildNodes()
+    def children2 = node2.getChildNodes()
+
+    for (int i = 0; i < children1.getLength(); i++) {
+        def child1 = children1.item(i)
+        def child2 = children2.item(i)
+
+        // Check if the nodes have text content
+        if (child1.getNodeType() == org.w3c.dom.Node.TEXT_NODE && child2.getNodeType() == org.w3c.dom.Node.TEXT_NODE) {
+            // Perform text content comparison logic here
+            if (!child1.getTextContent().trim().equals(child2.getTextContent().trim())) {
+                // Get the parent list for node1
+                def fullPath = parentList.join("/")
+                log.info("Mismatch found at ${fullPath}/${node1.getNodeName()}: Payload 1 value: ${child1.getTextContent()}, Payload 2 value: ${child2.getTextContent()}")
+            }
+        } else {
+            // If the nodes do not have text content, recursively compare their child nodes
+            validateNodeComparison(child1, child2, parentList + [node1.getNodeName()])
+        }
+    }
+}
+
+// Validate and compare the XML nodes between the two payloads
+validateXmlComparison(payload, payload2)
+```
+
+In this updated script, the `validateNodeComparison` function now accepts an additional parameter `parentList`, which is used to keep track of the parent nodes as the function traverses the XML hierarchy. The `parentList` is passed recursively as the nodes are processed, and the full path to the current node is constructed by joining the parent node names.
+
+When a text content mismatch is found between `payload` and `payload2`, the script logs the full path to the node where the mismatch occurred, providing visibility into the parent-child hierarchy leading to the differing values.
+
+You can adjust the logging or customize the script further based on your specific requirements. Let me know if you need any more help with this!
