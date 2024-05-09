@@ -1,0 +1,24 @@
+import groovy.json.*
+
+def printJsonPaths(json, parentPath = '$') {
+    if (json instanceof Map) {
+        json.each { key, value ->
+            def currentPath = parentPath + '.' + key
+            println currentPath
+            printJsonPaths(value, currentPath)
+        }
+    } else if (json instanceof List) {
+        json.eachWithIndex { value, index ->
+            def currentPath = parentPath + '[' + index + ']'
+            println currentPath
+            printJsonPaths(value, currentPath)
+        }
+    }
+}
+
+// Read JSON from file
+def jsonString = new File('/path/to/your/json/file.json').text
+def json = new JsonSlurper().parseText(jsonString)
+
+// Print JSON paths
+printJsonPaths(json)
