@@ -1,0 +1,33 @@
+import groovy.json.JsonBuilder
+import java.sql.ResultSet
+import java.sql.ResultSetMetaData
+
+// Get the ResultSet from vars
+ResultSet rs = vars.getObject("myResultSet")
+
+// Initialize a list to hold rows
+List<Map<String, Object>> rows = []
+
+// Get metadata to get column names
+ResultSetMetaData metaData = rs.getMetaData()
+int numColumns = metaData.getColumnCount()
+
+// Loop through ResultSet rows
+while (rs.next()) {
+    Map<String, Object> row = [:] // Create a new map for each row
+    // Loop through columns and add them to the map
+    for (int i = 1; i <= numColumns; i++) {
+        row.put(metaData.getColumnName(i), rs.getObject(i))
+    }
+    // Add the row to the list
+    rows.add(row)
+}
+
+// Convert list of maps to JSON
+def json = new JsonBuilder(rows).toPrettyString()
+
+// Print JSON output
+println("JSON Result:\n$json")
+
+// Optionally, you can store JSON in a JMeter variable for future use
+vars.put("jsonResult", json)
