@@ -1,0 +1,36 @@
+import groovy.json.JsonBuilder
+import java.sql.ResultSetMetaData
+
+// Access the result set from the JDBC Sampler
+def resultSet = vars.getObject("resultSet")
+
+// Function to convert ResultSet to a list of maps
+def resultSetToList(resultSet) {
+    def metaData = resultSet.getMetaData()
+    def columnCount = metaData.getColumnCount()
+    def rows = []
+
+    while (resultSet.next()) {
+        def row = [:]
+        for (int i = 1; i <= columnCount; i++) {
+            def columnName = metaData.getColumnName(i)
+            def columnValue = resultSet.getString(i)
+            row[columnName] = columnValue
+        }
+        rows << row
+    }
+    return rows
+}
+
+// Convert the ResultSet to a list of maps
+def resultList = resultSetToList(resultSet)
+
+// Build JSON from the list of maps
+def jsonBuilder = new JsonBuilder(resultList)
+def jsonOutput = jsonBuilder.toPrettyString()
+
+// Output the JSON result
+println(jsonOutput)
+
+// Store the result in a JMeter variable
+vars.put("resultJson", jsonOutput)
