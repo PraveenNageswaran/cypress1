@@ -1,0 +1,23 @@
+groovy
+import groovy.json.JsonBuilder
+
+// Get the ResultSet from the previous JDBC Request
+ResultSet rs = vars.getObject("resultSet")
+
+def jsonOutput = []
+def metaData = rs.getMetaData()
+def columnCount = metaData.getColumnCount()
+
+while (rs.next()) {
+    def row = [:]
+    for (int i = 1; i <= columnCount; i++) {
+        def columnName = metaData.getColumnName(i)
+        def value = rs.getObject(i)
+        row.put(columnName, value)
+    }
+    jsonOutput.add(row)
+}
+
+def json = new JsonBuilder(jsonOutput).toPrettyString()
+
+vars.put("jsonOutput", json)
