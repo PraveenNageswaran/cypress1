@@ -1,0 +1,50 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// Define the file path
+def filePath = "/path/to/your/file.json"
+
+// Get the result set from the JDBC Request Sampler
+def resultSet = vars.getObject("queryResult")
+
+// Initialize a list to store the rows as maps
+def rows = []
+
+// Check if the result set is not null and is an instance of ArrayList
+if (resultSet != null && resultSet instanceof ArrayList) {
+    for (row in resultSet) {
+        def rowMap = [:]
+        row.keySet().each { columnName ->
+            if (columnName == "payload") {
+                // Remove line breaks from payload
+                rowMap.put(columnName, row.get(columnName).toString().replaceAll("\n", ""))
+            } else {
+                rowMap.put(columnName, row.get(columnName))
+            }
+        }
+        rows.add(rowMap)
+    }
+} else if (resultSet != null) {
+    // If resultSet is not an ArrayList (single row), handle it accordingly
+    def rowMap = [:]
+    resultSet.keySet().each { columnName ->
+        if (columnName == "payload") {
+            // Remove line breaks from payload
+            rowMap.put(columnName, resultSet.get(columnName).toString().replaceAll("\n", ""))
+        } else {
+            rowMap.put(columnName, resultSet.get(columnName))
+        }
+    }
+    rows.add(rowMap)
+}
+
+// Convert the list of rows to JSON
+def jsonString = JsonOutput.toJson(rows)
+
+// Parse the JSON string and format it back to JSON without escape characters
+def slurper = new JsonSlurper()
+def json = slurper.parseText(jsonString)
+def cleanedJson = JsonOutput.toJson(json)
+
+// Write cleaned JSON to file
+new File(filePath).text = cleanedJson
