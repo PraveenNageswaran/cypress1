@@ -1,0 +1,50 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import java.sql.ResultSetMetaData
+
+// Get the result set from the JDBC Request Sampler
+def resultSet = vars.getObject("queryResult")
+
+// Initialize a list to store the rows as maps
+def rows = []
+
+// Function to parse eventbody string into JSON
+def parseEventBody(rowMap) {
+    if (rowMap.containsKey("eventbody")) {
+        def jsonSlurper = new JsonSlurper()
+        try {
+            def eventBodyJson = jsonSlurper.parseText(rowMap.get("eventbody"))
+            rowMap.put("eventbody", eventBodyJson)
+        } catch (Exception e) {
+            log.error("Failed to parse eventbody: ${e.message}")
+        }
+    }
+}
+
+// Get metadata to dynamically get column names
+if (resultSet != null && resultSet instanceof ArrayList) {
+    // Check if the result set is not null and is an instance of ArrayList
+    for (row in resultSet) {
+        def rowMap = [:]
+        row.keySet().each { columnName ->
+            rowMap.put(columnName, row.get(columnName))
+        }
+        parseEventBody(rowMap)
+        rows.add(rowMap)
+    }
+} else if (resultSet != null) {
+    // If resultSet is not an ArrayList (single row), handle it accordingly
+    def rowMap = [:]
+    resultSet.keySet().each { columnName ->
+        rowMap.put(columnName, resultSet.get(columnName))
+    }
+    parseEventBody(rowMap)
+    rows.add(rowMap)
+}
+
+// Convert the list of rows to JSON
+def jsonBuilder = new JsonBuilder(rows)
+def jsonString = jsonBuilder.toPrettyString()
+
+// Store the JSON result in a JMeter variable
+vars.put("queryResultJson", jsonString)
