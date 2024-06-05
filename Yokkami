@@ -1,0 +1,56 @@
+Here's a concise Groovy script to process and convert the `payload` field to a JSON object within a result set sourced from a JDBC request. This script will involve parsing and handling complex JSON strings inside fields:
+
+```groovy
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// Function to parse and clean potentially nested JSON strings within a map
+def parseNestedJsonFields(jsonObject) {
+    jsonObject.each { key, value ->
+        if (value instanceof String && value.trim().startsWith("{")) {
+            try {
+                jsonObject[key] = new JsonSlurper().parseText(value)
+            } catch (Exception e) {
+                // If not parsable, leave it unchanged
+            }
+        }
+    }
+    return jsonObject
+}
+
+// Get the result set from the JDBC Request Sampler
+def resultSet = vars.getObject("queryResult")
+
+// Initialize a list to store the rows as maps
+def rows = []
+
+// Check if the result set contains data
+if (resultSet != null) {
+    if (resultSet instanceof ArrayList) {
+        // Multiple rows scenario
+        resultSet.each { row ->
+            def rowMap = [:]
+            row.keySet().each { columnName ->
+                rowMap.put(columnName, row.get(columnName))
+            }
+            rows.add(parseNestedJsonFields(rowMap))
+        }
+    } else {
+        // Single row scenario
+        def rowMap = [:]
+        resultSet.keySet().each { columnName ->
+            rowMap.put(columnName, resultSet.get(columnName))
+        }
+        rows.add(parseNestedJsonFields(rowMap))
+    }
+}
+
+// Convert the list of rows to a JSON string
+def jsonBuilder = new JsonBuilder(rows)
+def jsonString = JsonOutput.prettyPrint(jsonBuilder.toString())
+
+print jsonString
+```
+
+will this code remove escape characters
