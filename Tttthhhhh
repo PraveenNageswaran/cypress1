@@ -1,0 +1,12 @@
+def transformValue(type, value) {
+    if (type == 'list') {
+        return [value.toString()]
+    } else {
+        return value
+    }
+}
+
+// Example usage:
+println(transformValue('list', 'some value')) // Output: [some value]
+println(transformValue('string', 'some value')) // Output: some value
+println(transformValue('int', 123)) // Output: 123
