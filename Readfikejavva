@@ -1,0 +1,21 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// Path to the credentials file from user.properties
+def filePath = props.getProperty("credentials.file")
+
+// Load the credentials file
+def properties = new Properties()
+FileInputStream fis = null
+try {
+    fis = new FileInputStream(filePath)
+    properties.load(fis)
+} finally {
+    if (fis != null) {
+        fis.close()
+    }
+}
+
+// Set the variables
+vars.put("USERNAME", properties.getProperty("username"))
+vars.put("PASSWORD", properties.getProperty("password"))
