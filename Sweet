@@ -1,0 +1,27 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// Path to the credentials file from user.properties
+def filePath = props.getProperty("credentials.file")
+
+// Initialize the properties
+def username = ""
+def password = ""
+
+// Load and parse the credentials file
+new File(filePath).eachLine { line ->
+    line = line.trim()
+    if (line.startsWith("Username=")) {
+        username = line.split("=")[1].trim()
+    } else if (line.startsWith("Password=")) {
+        password = line.split("=")[1].trim()
+    }
+}
+
+// Log the username and password for debugging purposes
+log.info("Username: " + username)
+log.info("Password: " + password)
+
+// Set the variables
+vars.put("USERNAME", username)
+vars.put("PASSWORD", password)
