@@ -1,0 +1,58 @@
+batch
+@echo off
+setlocal enabledelayedexpansion
+
+:: Initialize variables
+set "testcase="
+set "proxypassword="
+
+:: Parse named parameters
+for %%A in (%*) do (
+    if "%%~A"=="testcase=" set "testcase=%%~A:~9"
+    if "%%~A"=="proxypassword=" set "proxypassword=%%~A:~14"
+)
+
+:: Check if the required parameters are provided
+if "%testcase%"=="" (
+    echo Usage: %0 testcase=<testcase> proxypassword=<proxypassword>
+    exit /b 1
+)
+if "%proxypassword%"=="" (
+    echo Usage: %0 testcase=<testcase> proxypassword=<proxypassword>
+    exit /b 1
+)
+
+:: Define the file path
+set "file_path=path\to\your\credentials.txt"
+
+:: Initialize variables
+set "aws_access_key_id="
+set "aws_secret_access_key="
+
+:: Read the file and extract the access key and secret key, trimming spaces
+for /f "tokens=1,* delims==" %%A in (%file_path%) do (
+    set "key=%%A"
+    set "value=%%B"
+    
+    :: Remove leading spaces from key
+    for /f "tokens=* delims= " %%C in ("!key!") do set "key=%%C"
+    :: Remove leading and trailing spaces from value
+    for /f "tokens=* delims= " %%C in ("!value!") do set "value=%%C"
+    
+    if /i "!key!"=="aws_access_key_id" set "aws_access_key_id=!value!"
+    if /i "!key!"=="aws_secret_access_key" set "aws_secret_access_key=!value!"
+)
+
+:: Print the extracted parameters (masking the proxy password)
+echo AWS Access Key ID: %aws_access_key_id%
+echo AWS Secret Access Key: %aws_secret_access_key%
+echo Testcase: %testcase%
+echo Proxy Password: ********
+
+:: Run JMeter in non-GUI mode with the extracted and passed parameters
+set "jmeter_path=path\to\jmeter\bin\jmeter.bat"
+set "jmx_file=path\to\your\test_plan.jmx"
+set "results_file=path\to\your\results.jtl"
+
+:: Enclose paths and parameters in quotes to handle spaces and special characters
+"%jmeter_path%" -n -t "%jmx_file%" -l "%results_file%" -Jaws_access_key_id="%aws_access_key_id%" -Jaws_secret_access_key="%aws_secret_access_key%" -Jtestcase="%testcase%" -Jproxypassword="%proxypassword%"
