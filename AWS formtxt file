@@ -1,0 +1,45 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM Check if the correct number of arguments is passed
+if "%~1"=="" (
+    echo Error: Test case parameter is missing.
+    echo Usage: %0 TestCase ProxyPassword
+    exit /b 1
+)
+
+if "%~2"=="" (
+    echo Error: Proxy password parameter is missing.
+    echo Usage: %0 TestCase ProxyPassword
+    exit /b 1
+)
+
+REM Assign parameters to variables
+set TestCase=%1
+set ProxyPassword=%2
+
+REM Print the test case and proxy password in key=value format
+echo testcase=%TestCase%
+echo proxypassword=%ProxyPassword%
+
+REM Read credentials from cred.txt located in C:\workspace
+set "aws_access_key_id="
+set "aws_secret_access_key="
+
+for /f "tokens=1,* delims==" %%A in ('findstr /r /c:"aws_access_key_id=" C:\workspace\cred.txt') do set "aws_access_key_id=%%B"
+for /f "tokens=1,* delims==" %%A in ('findstr /r /c:"aws_secret_access_key=" C:\workspace\cred.txt') do set "aws_secret_access_key=%%B"
+
+REM Trim spaces
+set "aws_access_key_id=%aws_access_key_id: =%"
+set "aws_secret_access_key=%aws_secret_access_key: =%"
+
+REM Print the AWS credentials
+echo aws_access_key_id=%aws_access_key_id%
+echo aws_secret_access_key=%aws_secret_access_key%
+
+REM Run JMeter in non-GUI mode with AWS credentials
+REM Replace path_to_jmeter with the actual path to your JMeter executable
+REM Replace path_to_test_plan with the actual path to your JMeter test plan
+path_to_jmeter\jmeter -n -t path_to_test_plan -Jaws_access_key_id=%aws_access_key_id% -Jaws_secret_access_key=%aws_secret_access_key%
+
+pause
