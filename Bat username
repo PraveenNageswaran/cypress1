@@ -1,0 +1,22 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: Define the file path
+set "file_path=path\to\your\file.txt"
+
+:: Initialize variables
+set "username="
+set "password="
+
+:: Read the file and extract username and password
+for /f "tokens=1,2 delims==" %%A in (%file_path%) do (
+    if "%%A"=="Username" set "username=%%B"
+    if "%%A"=="Password" set "password=%%B"
+)
+
+:: Run JMeter in non-GUI mode with the extracted username and password
+set "jmeter_path=path\to\jmeter\bin\jmeter.bat"
+set "jmx_file=path\to\your\test_plan.jmx"
+set "results_file=path\to\your\results.jtl"
+
+%jmeter_path% -n -t %jmx_file% -l %results_file% -Jusername=%username% -Jpassword=%password%
