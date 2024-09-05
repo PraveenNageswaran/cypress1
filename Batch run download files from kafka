@@ -1,0 +1,27 @@
+@echo off
+REM Check if the correct number of arguments is passed
+if "%~1"=="" (
+    echo Error: SourceSystem parameter is missing.
+    echo Usage: %0 SourceSystem
+    exit /b 1
+)
+
+REM Assign the input parameter to a variable
+set SourceSystem=%1
+
+REM Set paths (assuming folder structure)
+set JMETER_PATH=%~dp0apachejmeter\bin\jmeter.bat
+set JMX_PATH=%~dp0jmx_files
+set LOGS_PATH=%~dp0logs
+
+REM Set the specific JMX file to run
+set JMX_FILE=%JMX_PATH%\YourTestPlan.jmx
+
+REM Set the log file for storing results
+set LOG_FILE=%LOGS_PATH%\test_results.log
+
+REM Run JMeter in non-GUI mode and pass SourceSystem parameter
+%JMETER_PATH% -n -t %JMX_FILE% -l %LOG_FILE% -JSourceSystem=%SourceSystem%
+
+REM Pause to show results
+pause
