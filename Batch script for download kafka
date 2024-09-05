@@ -1,0 +1,19 @@
+@echo off
+REM Print the current directory
+echo Current Project Directory: %~dp0
+
+REM Set JMeter path (apachejmeter\bin\jmeter.bat)
+set JMETER_PATH=%~dp0apachejmeter\bin\jmeter.bat
+
+REM Set JMX files path (jmx_files folder)
+set JMX_PATH=%~dp0jmx_files
+
+REM Set Logs path (logs folder)
+set LOGS_PATH=%~dp0logs
+
+REM Print paths
+echo JMeter Batch File Path: %JMETER_PATH%
+echo JMX Files Path: %JMX_PATH%
+echo Logs Path: %LOGS_PATH%
+
+pause
