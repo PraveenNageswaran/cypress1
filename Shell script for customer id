@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Check if the correct number of arguments is passed
+if [ -z "$1" ]; then
+    echo "Error: SourceSystem parameter is missing."
+    echo "Usage: $0 SourceSystem"
+    exit 1
+fi
+
+# Assign the input parameter to a variable
+SourceSystem=$1
+
+# Set paths (assuming folder structure relative to the script's location)
+CURRENT_DIR="$(cd "$(dirname "$0")" && pwd)"
+JMETER_PATH="$CURRENT_DIR/apachejmeter/bin/jmeter"
+JMX_PATH="$CURRENT_DIR/jmx_files"
+LOGS_PATH="$CURRENT_DIR/logs"
+
+# Set the specific JMX file to run (replace YourTestPlan.jmx with the actual test plan file name)
+JMX_FILE="$JMX_PATH/YourTestPlan.jmx"
+
+# Set the log file for storing results
+LOG_FILE="$LOGS_PATH/test_results.log"
+
+# Print paths for verification (optional)
+echo "JMeter Executable Path: $JMETER_PATH"
+echo "JMX Files Path: $JMX_PATH"
+echo "Logs Path: $LOGS_PATH"
+echo "SourceSystem: $SourceSystem"
+
+# Run JMeter in non-GUI mode and pass SourceSystem parameter
+"$JMETER_PATH" -n -t "$JMX_FILE" -l "$LOG_FILE" -JSourceSystem="$SourceSystem"
+
+# Optional: Add a pause equivalent in Linux (you can remove it if not needed)
+read -p "Press [Enter] key to continue..."
