@@ -1,0 +1,113 @@
+groovy
+import groovy.json.JsonSlurper
+import java.nio.file.Files
+import java.nio.file.Paths
+
+// Function to read JSON file and parse it
+def readJsonFile(String filePath) {
+    def jsonString = new String(Files.readAllBytes(Paths.get(filePath)))
+    def jsonSlurper = new JsonSlurper()
+    return jsonSlurper.parseText(jsonString)
+}
+
+// Function to generate HTML report
+def generateHtmlReport(List results, String outputFilePath) {
+    // Count test results
+    def total = results.size()
+    def passed = results.count { it.status == 'Passed' }
+    def failed = results.count { it.status == 'Failed' }
+    def skipped = results.count { it.status == 'Skipped' }
+    
+    StringBuilder html = new StringBuilder()
+
+    // HTML Header
+    html.append("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Test Results Report</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+                h1 { text-align: center; color: #333; }
+                .summary { width: 80%; margin: 20px auto; text-align: center; }
+                canvas { max-width: 600px; margin: 0 auto; }
+                table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                th { background-color: #4CAF50; color: white; }
+                .passed { background-color: #dff0d8; }
+                .failed { background-color: #f2dede; }
+                .skipped { background-color: #fcf8e3; }
+                .reason { font-style: italic; color: #a94442; }
+            </style>
+        </head>
+        <body>
+            <h1>Test Results Report</h1>
+            <div class="summary">
+                <h2>Overview</h2>
+                <canvas id="resultsChart"></canvas>
+            </div>
+            <table>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                </tr>
+    """)
+
+    // Populate the table with test results
+    results.each { result ->
+        String statusClass = result.status.toLowerCase()
+        html.append("""
+            <tr class="${statusClass}">
+                <td>${result.testCase}</td>
+                <td>${result.status}</td>
+                <td class="reason">${result.reason ?: 'N/A'}</td>
+            </tr>
+        """)
+    }
+
+    // HTML Footer with Chart.js integration
+    html.append("""
+            </table>
+            <script>
+                const ctx = document.getElementById('resultsChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Passed', 'Failed', 'Skipped'],
+                        datasets: [{
+                            label: 'Test Results',
+                            data: [${passed}, ${failed}, ${skipped}],
+                            backgroundColor: ['#4CAF50', '#f44336', '#ffeb3b'],
+                            borderColor: ['#388E3C', '#C62828', '#FBC02D'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    """)
+
+    // Write HTML to file
+    Files.write(Paths.get(outputFilePath), html.toString().getBytes())
+}
+
+// Main execution
+def inputFilePath = 'result.json' // Path to your JSON file
+def outputFilePath = 'test_results_report.html' // Desired output HTML file path
+
+def results = readJsonFile(inputFilePath)
+generateHtmlReport(results, outputFilePath)
+
+println "HTML Report generated at: ${outputFilePath}"
