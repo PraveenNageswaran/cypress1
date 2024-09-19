@@ -1,0 +1,71 @@
+import org.json.JSONArray
+import org.json.JSONObject
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.charset.StandardCharsets
+import java.io.File
+
+// Common function to handle creating and updating the JSONArray with test case data
+def updateTestCasesJsonFile(Set<String> passtestcase, Set<String> failedset, String filePath) {
+    JSONArray jsonArray
+    
+    // Check if the file exists, create a new JSON array if it doesn't
+    File jsonFile = new File(filePath)
+    if (jsonFile.exists()) {
+        // Read the existing content from the file
+        String fileContent = new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8)
+        jsonArray = new JSONArray(fileContent)
+    } else {
+        // Create a new blank JSONArray if the file doesn't exist
+        jsonArray = new JSONArray()
+        println("No existing file found. Creating a new blank JSONArray.")
+    }
+
+    // Function to add test cases to JSONArray
+    def addTestCasesToJSONArray = { testSet, statusValue ->
+        testSet.each { testCaseId ->
+            // Print the test case being processed for debugging
+            println("Processing test case ID: " + testCaseId + " with status: " + statusValue)
+
+            // Create and add the test case to JSONArray
+            JSONObject testCase = new JSONObject()
+            testCase.put("testCaseId", testCaseId)
+            testCase.put("status", statusValue)
+            testCase.put("url", "https://example.com/testcase/" + testCaseId) // Replace with actual URL if needed
+            jsonArray.put(testCase)
+        }
+    }
+
+    // Print the contents of the sets before processing
+    println("Pass test cases: " + passtestcase.toString())
+    println("Fail test cases: " + failedset.toString())
+
+    // Add passed test cases with status 1
+    addTestCasesToJSONArray(passtestcase, 1)
+
+    // Add failed test cases with status 2
+    addTestCasesToJSONArray(failedset, 2)
+
+    // Convert the updated JSONArray back to a string (pretty printed)
+    String updatedJsonString = jsonArray.toString(4)
+
+    // Save the updated JSONArray back to the file (create file if not present)
+    Files.write(Paths.get(filePath), updatedJsonString.getBytes(StandardCharsets.UTF_8))
+
+    // Print success message
+    println("Updated JSONArray saved to file: " + filePath)
+}
+
+// Retrieve passed and failed test cases from JMeter properties (comma-separated string)
+String passTestCasesProp = props.get("passtestcase") ?: ""
+String failTestCasesProp = props.get("failedset") ?: ""
+
+// Convert the comma-separated strings to sets
+Set<String> passtestcase = new HashSet<>(Arrays.asList(passTestCasesProp.split(",")))
+Set<String> failedset = new HashSet<>(Arrays.asList(failTestCasesProp.split(",")))
+
+// Define the file path where the JSON should be saved
+String filePath = "C:/path_to_your_folder/your_json_file.json"
+
+// Call the function to update the JSON file with the test case data
+updateTestCasesJsonFile(passtestcase, failedset, filePath)
