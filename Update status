@@ -1,0 +1,32 @@
+import org.json.JSONArray
+import org.json.JSONObject
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.charset.StandardCharsets
+
+// Define the file path where your JSONArray is saved
+String filePath = "C:/path_to_your_folder/your_json_file.json"
+
+// Read the file content into a string
+String fileContent = new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8)
+
+// Parse the string into a JSONArray
+JSONArray jsonArray = new JSONArray(fileContent)
+
+// Create a new JSONObject with the required fields
+JSONObject testCase = new JSONObject()
+testCase.put("status", "Passed")           // Replace with actual status
+testCase.put("testCaseId", "TC_001")       // Replace with actual testCaseId
+testCase.put("url", "https://example.com") // Replace with actual URL
+
+// Add the new JSONObject to the JSONArray
+jsonArray.put(testCase)
+
+// Convert the updated JSONArray back to a string
+String updatedJsonString = jsonArray.toString(4) // Pretty print with indentation of 4 spaces
+
+// Save the updated JSONArray back to the file
+Files.write(Paths.get(filePath), updatedJsonString.getBytes(StandardCharsets.UTF_8))
+
+// Log success message
+log.info("Updated JSONArray saved with new test case: " + testCase.toString())
