@@ -1,0 +1,19 @@
+import org.json.JSONArray
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.charset.StandardCharsets
+
+// Create a blank JSONArray
+JSONArray jsonArray = new JSONArray()
+
+// Define the file path where you want to save the JSON array
+String filePath = "C:/path_to_your_folder/your_json_file.json"
+
+// Convert the JSONArray to a string
+String jsonString = jsonArray.toString(4) // Pretty print with indentation of 4 spaces
+
+// Write the JSON string to the file
+Files.write(Paths.get(filePath), jsonString.getBytes(StandardCharsets.UTF_8))
+
+// Log success message
+log.info("Blank JSONArray saved to file: " + filePath)
