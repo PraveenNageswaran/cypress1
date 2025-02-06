@@ -1,0 +1,43 @@
+@Grab(group='software.amazon.awssdk', module='s3', version='2.17.172')
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import java.nio.charset.StandardCharsets
+
+// Fetch credentials from JMeter variables
+String accessKey = vars.get("AWS_ACCESS_KEY")
+String secretKey = vars.get("AWS_SECRET_KEY")
+String sessionToken = vars.get("AWS_SESSION_TOKEN") // Optional, for STS credentials
+String bucketName = vars.get("AWS_BUCKET_NAME")
+String key = "path/to/yourfile.json"  // Replace with the actual file path in S3
+
+// AWS Region (modify as needed)
+Region region = Region.US_EAST_1
+
+// Create AWS credentials
+AwsBasicCredentials awsCreds = AwsBasicCredentials.create(accessKey, secretKey)
+
+// If using temporary STS credentials, use SessionCredentials
+def credentialsProvider = StaticCredentialsProvider.create(awsCreds)
+
+// Create S3 Client
+S3Client s3 = S3Client.builder()
+                      .region(region)
+                      .credentialsProvider(credentialsProvider)
+                      .build()
+
+// Build GET request
+def getObjectRequest = GetObjectRequest.builder()
+                                       .bucket(bucketName)
+                                       .key(key)
+                                       .build()
+
+// Fetch the JSON file from S3
+def s3Object = s3.getObject(getObjectRequest)
+String jsonContent = s3Object.getText(StandardCharsets.UTF_8.name())
+
+// Log and store JSON in JMeter variable
+log.info("JSON content from S3: " + jsonContent)
+vars.put("jsonContent", jsonContent)  // Store JSON for later use
