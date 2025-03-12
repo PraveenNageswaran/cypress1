@@ -1,0 +1,34 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k4File)
+
+def k5UniqueIdsJson = props.get("k5_ids")
+if (k5UniqueIdsJson == null || k5UniqueIdsJson.isEmpty()) {
+    log.error("⚠ ERROR: K5 Unique IDs not found in props!")
+    return
+}
+def k5UniqueIds = new HashSet(new JsonSlurper().parseText(k5UniqueIdsJson))
+
+def k4Map = [:]
+
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        if (k5UniqueIds.contains(uniqueId)) {
+            k4Map[uniqueId] = node.toString()
+        }
+    }
+}
+parser.close()
+
+props.put("k4_data", JsonOutput.toJson(k4Map))
+log.info("✅ Stored " + k4Map.size() + " matching K4 records in props.")
