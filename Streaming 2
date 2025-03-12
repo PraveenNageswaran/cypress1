@@ -1,0 +1,23 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()  // Attach ObjectMapper
+def parser = jsonFactory.createParser(k5File)
+
+// Ensure we start reading an array
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+
+// Process each record one by one
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)  // Use ObjectMapper
+        def uniqueId = node.get("unique_id").asText()
+        
+        // Store the unique ID in JMeter variable for next steps
+        vars.put("current_unique_id", uniqueId)
+    }
+}
+parser.close()
