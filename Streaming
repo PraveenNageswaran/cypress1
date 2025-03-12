@@ -1,0 +1,46 @@
+import com.fasterxml.jackson.core.*
+import java.nio.file.*
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def parser = jsonFactory.createParser(k5File)
+
+// Process each record one by one
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = parser.readValueAsTree()
+        def uniqueId = node.get("unique_id").asText()
+        
+        // Store the unique ID in JMeter variable for next steps
+        vars.put("current_unique_id", uniqueId)
+    }
+}
+parser.close()
+
+
+_____
+
+import com.fasterxml.jackson.core.*
+import java.nio.file.*
+import java.util.concurrent.ConcurrentHashMap
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def jsonFactory = new JsonFactory()
+def parser = jsonFactory.createParser(k4File)
+
+// Store k4 records in a HashMap for quick lookup
+def k4Map = new ConcurrentHashMap<String, String>()
+
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = parser.readValueAsTree()
+        def uniqueId = node.get("unique_id").asText()
+        k4Map.put(uniqueId, node.toString()) // Save JSON as string
+    }
+}
+parser.close()
+
+// Store the HashMap in JMeter
+vars.putObject("k4_data", k4Map)
+
+____
