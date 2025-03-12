@@ -1,0 +1,17 @@
+import groovy.json.JsonSlurper
+
+// ✅ Retrieve K5 Unique IDs stored in props
+def k5UniqueIdsJson = props.get("k5_ids")
+if (k5UniqueIdsJson == null || k5UniqueIdsJson.isEmpty()) {
+    log.error("⚠ ERROR: K5 Unique IDs not found in props!")
+    return
+}
+def k5UniqueIds = new JsonSlurper().parseText(k5UniqueIdsJson)
+
+// ✅ Store each unique_id in JMeter variables for ForEach Controller
+for (int i = 0; i < k5UniqueIds.size(); i++) {
+    vars.put("k5_id_" + (i + 1), k5UniqueIds[i])
+}
+vars.put("k5_id_count", k5UniqueIds.size().toString())
+
+log.info("✅ Loaded " + k5UniqueIds.size() + " unique IDs from props into JMeter variables.")
