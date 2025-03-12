@@ -1,0 +1,25 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+def index = 1  // Track index for ForEach Controller
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        vars.put("k5_id_" + index, uniqueId)  // ✅ Store unique_id as JMeter variable
+        log.info("🔹 Extracted unique_id: " + uniqueId)
+        index++
+    }
+}
+parser.close()
+
+// ✅ Store total count for ForEach Controller
+vars.put("k5_id_count", (index - 1).toString())  // Subtract 1 to get correct count
+log.info("✅ Extracted " + (index - 1) + " unique IDs.")
