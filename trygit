@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="JSON Comparison Test Plan" enabled="true">
+      <hashTree>
+        <!-- Thread Group 1: Process K5 JSON -->
+        <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Process K5 JSON" enabled="true">
+          <stringProp name="ThreadGroup.num_threads">1</stringProp>
+          <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+          <stringProp name="ThreadGroup.loop_count">1</stringProp>
+          <hashTree>
+            <!-- JSR223 Sampler: Extract Unique IDs from K5 JSON -->
+            <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Extract Unique IDs from K5" enabled="true">
+              <stringProp name="scriptLanguage">groovy</stringProp>
+              <stringProp name="script">
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import java.util.HashSet
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+def k5UniqueIds = new HashSet<String>()
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        k5UniqueIds.add(uniqueId)
+    }
+}
+parser.close()
+vars.putObject("k5_ids", k5UniqueIds)
+              </stringProp>
+            </JSR223Sampler>
+          </hashTree>
+        </ThreadGroup>
+
+        <!-- Thread Group 2: Parallel Processing & Assertions -->
+        <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Parallel Processing & Assertions" enabled="true">
+          <stringProp name="ThreadGroup.num_threads">32</stringProp>
+          <stringProp name="ThreadGroup.ramp_time">5</stringProp>
+          <stringProp name="ThreadGroup.loop_count">-1</stringProp>
+          <hashTree>
+            <!-- JSR223 Sampler: Load Filtered K4 JSON into HashMap -->
+            <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Load Filtered K4 JSON" enabled="true">
+              <stringProp name="scriptLanguage">groovy</stringProp>
+              <stringProp name="script">
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import java.util.concurrent.ConcurrentHashMap
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k4File)
+
+def k5UniqueIds = vars.getObject("k5_ids")
+def k4Map = new ConcurrentHashMap<String, String>()
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        if (k5UniqueIds.contains(uniqueId)) {
+            k4Map.put(uniqueId, node.toString())
+        }
+    }
+}
+parser.close()
+vars.putObject("k4_data", k4Map)
+              </stringProp>
+            </JSR223Sampler>
+            
+            <!-- JSR223 Assertion: Compare All Key-Value Pairs -->
+            <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="Compare JSON Records" enabled="true">
+              <stringProp name="scriptLanguage">groovy</stringProp>
+              <stringProp name="script">
+import groovy.json.JsonSlurper
+
+def uniqueId = vars.get("current_unique_id")
+def k4Map = vars.getObject("k4_data")
+if (!k4Map.containsKey(uniqueId)) {
+    Failure = true
+    FailureMessage = "No matching record found in K4 for ID: ${uniqueId}"
+    return
+}
+def k5_record = vars.get("k5_json")
+def k4_record = k4Map.get(uniqueId)
+def jsonSlurper = new JsonSlurper()
+def k5_obj = jsonSlurper.parseText(k5_record)
+def k4_obj = jsonSlurper.parseText(k4_record)
+if (!k5_obj.equals(k4_obj)) {
+    Failure = true
+    FailureMessage = "Mismatch for ID: ${uniqueId}\nK5: ${k5_record}\nK4: ${k4_record}"
+}
+              </stringProp>
+            </JSR223Assertion>
+          </hashTree>
+        </ThreadGroup>
+      </hashTree>
+    </TestPlan>
+  </hashTree>
+</jmeterTestPlan>
