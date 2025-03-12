@@ -1,0 +1,57 @@
+import groovy.json.JsonSlurper
+
+def uniqueId = vars.get("current_unique_id")
+def k5Json = props.get("k5_data")
+def k4Json = props.get("k4_data")
+
+if (k5Json == null || k4Json == null) {
+    log.error("⚠ ERROR: K5 or K4 data missing in props!")
+    return
+}
+
+def k5Map = new JsonSlurper().parseText(k5Json)
+def k4Map = new JsonSlurper().parseText(k4Json)
+
+if (k5Map.containsKey(uniqueId) && k4Map.containsKey(uniqueId)) {
+    vars.put("k5_json", k5Map.get(uniqueId))
+    vars.put("k4_json", k4Map.get(uniqueId))
+}
+
+
+==========
+
+import groovy.json.JsonSlurper
+
+def uniqueId = vars.get("current_unique_id")
+def k5_record = vars.get("k5_json")
+def k4_record = vars.get("k4_json")
+
+if (k5_record == null || k4_record == null) {
+    Failure = true
+    FailureMessage = "Missing record in K5 or K4 for ID: ${uniqueId}"
+    return
+}
+
+def jsonSlurper = new JsonSlurper()
+def k5_obj = jsonSlurper.parseText(k5_record)
+def k4_obj = jsonSlurper.parseText(k4_record)
+
+if (!k5_obj.equals(k4_obj)) {
+    Failure = true
+    FailureMessage = "Mismatch for ID: ${uniqueId}\nK5: ${k5_record}\nK4: ${k4_record}"
+}
+==============
+
+import java.nio.file.*
+import java.io.*
+
+def logFile = Paths.get("C:/workspace/assertion_results.csv").toFile()
+def uniqueId = vars.get("current_unique_id")
+def k5_record = vars.get("k5_json")
+def k4_record = vars.get("k4_json")
+
+if (!k5_record.equals(k4_record)) {  // ✅ Only log mismatches
+    def logEntry = "${uniqueId},${k5_record},${k4_record},FAIL\n"
+    Files.write(logFile.toPath(), logEntry.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+    log.info("⚠ Assertion failed for ID: " + uniqueId + " (Logged in CSV)")
+}
