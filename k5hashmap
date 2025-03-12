@@ -1,0 +1,28 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import groovy.json.JsonOutput
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+def k5UniqueIds = []  // List to store unique IDs
+def k5Map = [:]  // Store entire K5 records in a HashMap
+
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        k5UniqueIds.add(uniqueId)
+        k5Map[uniqueId] = node.toString()
+    }
+}
+parser.close()
+
+// ✅ Store unique IDs and K5 records globally in props
+props.put("k5_ids", JsonOutput.toJson(k5UniqueIds))
+props.put("k5_data", JsonOutput.toJson(k5Map))
+log.info("✅ Stored " + k5UniqueIds.size() + " unique IDs and K5 records in props.")
