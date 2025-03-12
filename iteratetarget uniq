@@ -1,0 +1,17 @@
+import groovy.json.JsonSlurper
+
+def uniqueId = vars.get("current_unique_id")
+def k4Json = props.get("k4_data")
+
+if (k4Json == null || k4Json.isEmpty()) {
+    log.error("⚠ ERROR: K4 data not available!")
+    return
+}
+
+def k4Map = new JsonSlurper().parseText(k4Json)
+
+if (k4Map.containsKey(uniqueId)) {
+    vars.put("k4_json", k4Map.get(uniqueId))
+} else {
+    log.error("⚠ No matching record found in K4 for ID: ${uniqueId}")
+}
