@@ -1,0 +1,27 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import java.util.HashSet
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+// Store Unique IDs in a Set
+def k5UniqueIds = new HashSet<String>()
+
+// Ensure we start reading an array
+while (parser.nextToken() != JsonToken.START_ARRAY) {}
+
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        k5UniqueIds.add(uniqueId) // Store in Set
+    }
+}
+parser.close()
+
+// Store Unique IDs for filtering K4 JSON
+vars.putObject("k5_ids", k5UniqueIds)
