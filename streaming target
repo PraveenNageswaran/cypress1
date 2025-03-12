@@ -1,0 +1,31 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import java.util.concurrent.ConcurrentHashMap
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k4File)
+
+// Get unique IDs from K5 JSON
+def k5UniqueIds = vars.getObject("k5_ids")
+
+// HashMap to store matching K4 records
+def k4Map = new ConcurrentHashMap<String, String>()
+
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def uniqueId = node.get("unique_id").asText()
+        
+        // Only store records that exist in K5
+        if (k5UniqueIds.contains(uniqueId)) {
+            k4Map.put(uniqueId, node.toString())
+        }
+    }
+}
+parser.close()
+
+// Store filtered K4 records in JMeter
+vars.putObject("k4_data", k4Map)
