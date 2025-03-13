@@ -1,0 +1,50 @@
+import groovy.json.JsonSlurper
+
+// ✅ Store correct unique_id in a local variable to avoid overwriting
+def currentUniqueId = vars.get("current_unique_id") ?: "UNKNOWN_ID"
+
+// ✅ Fetch JSON records stored in memory
+def k5_record = vars.get("k5_json")
+def k4_record = vars.get("k4_json")
+
+// ✅ If any record is missing, log and fail the assertion
+if (k5_record == null || k4_record == null) {
+    Failure = true
+    FailureMessage = "❌ Missing record in K5 or K4 for ID: ${currentUniqueId}"
+    log.error("❌ Missing record in K5 or K4 for ID: ${currentUniqueId}")
+    return
+}
+
+// ✅ Convert JSON strings to objects
+def jsonSlurper = new JsonSlurper()
+def k5_obj = jsonSlurper.parseText(k5_record)
+def k4_obj = jsonSlurper.parseText(k4_record)
+
+// ✅ Compare each field and log only mismatches
+def mismatchedFields = []
+
+// ✅ Check fields in K5 (to find missing/mismatched fields in K4)
+k5_obj.each { key, k5_value ->
+    def k4_value = k4_obj[key]  // Get corresponding value from K4 JSON
+    if (k4_value == null) {
+        mismatchedFields.add("❌ Key '${key}' is missing in K4")
+    } else if (!k5_value.equals(k4_value)) {
+        mismatchedFields.add("❌ Key '${key}' mismatch: K5='${k5_value}', K4='${k4_value}'")
+    }
+}
+
+// ✅ Check fields in K4 (to find extra fields in K4 that are not in K5)
+k4_obj.each { key, k4_value ->
+    if (!k5_obj.containsKey(key)) {
+        mismatchedFields.add("❌ Extra key '${key}' found in K4 but missing in K5")
+    }
+}
+
+// ✅ If mismatches exist, log them for the correct unique_id
+if (!mismatchedFields.isEmpty()) {
+    Failure = true
+    FailureMessage = "❌ Validation failed for ID: ${currentUniqueId}\n" + mismatchedFields.join("\n")
+    log.error("❌ Validation failed for ID: ${currentUniqueId}\n" + mismatchedFields.join("\n"))
+} else {
+    log.info("✅ Validation passed for ID: ${currentUniqueId}")
+}
