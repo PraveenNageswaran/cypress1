@@ -1,0 +1,16 @@
+import org.apache.jmeter.services.FileServer
+import java.nio.file.*
+
+// ✅ Get file path
+def tempFilePath = Paths.get("C:/workspace/k5_ids.txt").toFile()
+
+if (!tempFilePath.exists()) {
+    log.error("❌ ERROR: Extracted ID file not found: " + tempFilePath.absolutePath)
+    return
+}
+
+// ✅ Register file in FileServer
+FileServer.getFileServer().reserveFile(tempFilePath.absolutePath)
+vars.put("k5_id_file", tempFilePath.absolutePath)  // ✅ Store in JMeter vars
+
+log.info("✅ Unique ID file registered in FileServer: " + tempFilePath.absolutePath)
