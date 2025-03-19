@@ -1,0 +1,21 @@
+import com.fasterxml.jackson.databind.*
+import groovy.json.JsonOutput
+
+// ✅ Fetch the current unique ID from ForEach Controller
+def uniqueId = vars.get("k5_id")
+log.info("🔹 Processing Unique ID: " + uniqueId)
+
+// ✅ Load filtered K4 JSON
+def k4File = new File("C:/workspace/k4_filtered.json")
+def objectMapper = new ObjectMapper()
+def k4Records = objectMapper.readTree(k4File)
+
+// ✅ Find matching K4 record
+def matchedRecord = k4Records.find { it.get("unique_id").asText() == uniqueId }
+
+if (matchedRecord) {
+    vars.put("k4_record", JsonOutput.toJson(matchedRecord))
+    log.info("✅ Found matching K4 record for ID: " + uniqueId)
+} else {
+    log.warn("❌ No matching record found in K4 for ID: " + uniqueId)
+}
