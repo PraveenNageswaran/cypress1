@@ -1,0 +1,78 @@
+import com.fasterxml.jackson.databind.*
+import groovy.json.JsonOutput
+
+// ✅ Fetch the current unique ID from ForEach Controller
+def uniqueId = vars.get("k5_id")?.trim()
+log.info("🔹 Processing Unique ID: " + uniqueId)
+
+// ✅ Load K4 JSON from temp file
+def k4File = new File("C:/workspace/k4_filtered.json")
+def objectMapper = new ObjectMapper()
+def k4Records = objectMapper.readTree(k4File)
+
+// ✅ Find matching K4 record
+def matchedRecord = k4Records.find { it.get("unique_id")?.asText()?.trim() == uniqueId }
+
+if (matchedRecord) {
+    vars.put("k4_record", JsonOutput.toJson(matchedRecord))
+    log.info("✅ Found matching K4 record for ID: " + uniqueId)
+} else {
+    log.warn("❌ No matching record found in K4 for ID: " + uniqueId)
+}
+
+// ✅ Load K5 JSON for this unique ID
+def k5File = new File("C:/workspace/k5.json")
+def k5Records = objectMapper.readTree(k5File)
+
+// ✅ Find the K5 record with the same unique ID
+def k5MatchedRecord = k5Records.find { it.get("unique_id")?.asText()?.trim() == uniqueId }
+
+if (k5MatchedRecord) {
+    vars.put("k5_record", JsonOutput.toJson(k5MatchedRecord))
+    log.info("✅ Stored K5 record for ID: " + uniqueId)
+} else {
+    log.warn("❌ No matching record found in K5 for ID: " + uniqueId)
+}
+
+
+==
+import com.fasterxml.jackson.databind.*
+import groovy.json.JsonOutput
+
+// ✅ Fetch K5 record (current iteration unique ID)
+def uniqueId = vars.get("k5_id")?.trim()
+log.info("🔹 Validating Unique ID: " + uniqueId)
+
+// ✅ Fetch the stored K4 record (matched in the previous step)
+def k4Json = vars.get("k4_record")
+if (!k4Json) {
+    log.warn("❌ No matching K4 record found for ID: " + uniqueId)
+    return
+}
+
+// ✅ Convert JSON Strings to Objects
+def objectMapper = new ObjectMapper()
+def k5Record = objectMapper.readTree(vars.get("k5_record"))  // K5 record stored earlier
+def k4Record = objectMapper.readTree(k4Json)  // K4 record from the previous step
+
+// ✅ Compare all fields and find mismatches
+def mismatchedFields = []
+k5Record.fieldNames().each { field ->
+    def k5Value = k5Record.get(field)?.asText()?.trim()
+    def k4Value = k4Record.get(field)?.asText()?.trim()
+
+    if (k5Value != k4Value) {
+        mismatchedFields << "${field}: K5(${k5Value}) ≠ K4(${k4Value})"
+    }
+}
+
+// ✅ Log Results
+if (mismatchedFields.isEmpty()) {
+    log.info("✅ Validation PASSED for ID: " + uniqueId)
+} else {
+    log.warn("❌ Validation FAILED for ID: " + uniqueId)
+    log.warn("⚠️ Mismatched Fields: \n" + mismatchedFields.join("\n"))
+}
+
+// ✅ Store failures in a variable for CSV logging (optional)
+vars.put("assertion_mismatch", mismatchedFields.join("; "))
