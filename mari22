@@ -1,0 +1,36 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def tempFile = Paths.get("C:/workspace/k4_filtered.json").toFile()
+def idsFile = Paths.get("C:/workspace/k5_ids.txt").toFile()
+
+def objectMapper = new ObjectMapper()
+def uniqueIds = new HashSet<>(idsFile.readLines())  // ✅ Load unique IDs
+
+def jsonFactory = new JsonFactory()
+def parser = jsonFactory.createParser(k4File)
+def writer = new PrintWriter(tempFile, "UTF-8")
+
+writer.println("[")
+
+boolean first = true
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+        def id = node.get("unique_id").asText()
+
+        if (uniqueIds.contains(id)) {
+            if (!first) writer.println(",")
+            writer.print(objectMapper.writeValueAsString(node))
+            first = false
+        }
+    }
+}
+
+writer.println("]")
+parser.close()
+writer.close()
+
+log.info("✅ Filtered K4 records saved to: ${tempFile}")
