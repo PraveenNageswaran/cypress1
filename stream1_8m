@@ -1,0 +1,32 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import java.io.*
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+def writer = new BufferedWriter(new FileWriter("C:/workspace/k5_ids.txt"))
+
+while (parser.nextToken() != JsonToken.START_ARRAY) {}  // Find start of array
+
+while (parser.nextToken() != JsonToken.END_ARRAY) {
+    if (parser.currentToken() == JsonToken.START_OBJECT) {
+        def node = objectMapper.readTree(parser)
+
+        // ✅ Apply filtering logic
+        def status = node.get("status")?.asText()
+        def amount = node.get("amount")?.asDouble(0)
+        def region = node.get("region")?.asText()
+
+        if (status == "active" && amount > 500 && region == "US") {
+            writer.write(node.get("unique_id").asText() + "\n")  
+        }
+    }
+}
+parser.close()
+writer.close()
+
+log.info("✅ Extracted Unique IDs are stored in temp file.")
