@@ -1,0 +1,24 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def k5File = Paths.get("C:/workspace/k5.json").toFile()
+def tempFile = Paths.get("C:/workspace/k5_ids.txt").toFile()  // ✅ Temporary storage
+
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k5File)
+
+tempFile.withWriter("UTF-8") { writer ->
+    while (parser.nextToken() != JsonToken.START_ARRAY) {}  // Move to array start
+
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
+        if (parser.currentToken() == JsonToken.START_OBJECT) {
+            def node = objectMapper.readTree(parser)
+            def uniqueId = node.get("unique_id").asText()
+            writer.write(uniqueId + "\n")  // ✅ Write to temp file
+        }
+    }
+}
+parser.close()
+log.info("✅ Extracted unique IDs saved to " + tempFile.absolutePath)
