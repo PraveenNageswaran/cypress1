@@ -3,6 +3,10 @@ import com.fasterxml.jackson.databind.*
 import java.nio.file.*
 import java.io.*
 
+// Load dynamic filter value from JMeter variable or property
+def filterKey = vars.get("filter_key") ?: "status"  // Default: "status"
+def filterValue = vars.get("filter_value") ?: "active"  // Default: "active"
+
 def k5File = Paths.get("C:/workspace/k5.json").toFile()
 def jsonFactory = new JsonFactory()
 def objectMapper = new ObjectMapper()
@@ -16,12 +20,9 @@ while (parser.nextToken() != JsonToken.END_ARRAY) {
     if (parser.currentToken() == JsonToken.START_OBJECT) {
         def node = objectMapper.readTree(parser)
 
-        // ✅ Apply filtering logic
-        def status = node.get("status")?.asText()
-        def amount = node.get("amount")?.asDouble(0)
-        def region = node.get("region")?.asText()
-
-        if (status == "active" && amount > 500 && region == "US") {
+        // ✅ Apply dynamic filtering condition
+        def recordValue = node.get(filterKey)?.asText()
+        if (recordValue == filterValue) {  
             writer.write(node.get("unique_id").asText() + "\n")  
         }
     }
@@ -29,4 +30,4 @@ while (parser.nextToken() != JsonToken.END_ARRAY) {
 parser.close()
 writer.close()
 
-log.info("✅ Extracted Unique IDs are stored in temp file.")
+log.info("✅ Extracted Unique IDs (filtered by ${filterKey}=${filterValue}) stored in temp file.")
