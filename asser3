@@ -1,0 +1,23 @@
+import com.fasterxml.jackson.databind.*
+import groovy.json.JsonOutput
+
+// ✅ Get current K5 record unique ID
+def uniqueId = vars.get("k5_id")
+
+// ✅ Retrieve K4 records stored in Step 3
+def k4Map = props.get("k4_records")
+
+if (k4Map == null) {
+    throw new IllegalStateException("❌ K4 records not found in memory. Step 3 might have failed!")
+}
+
+// ✅ Check if the matching record exists
+if (!k4Map.containsKey(uniqueId)) {
+    log.warn("❌ No matching record found in K4 for ID: " + uniqueId)
+    return
+}
+
+// ✅ Get the corresponding K4 record
+def k4Record = k4Map[uniqueId]
+vars.put("k4_record", JsonOutput.toJson(k4Record))  // ✅ Store in JMeter variable
+log.info("✅ Found matching K4 record for ID: " + uniqueId)
