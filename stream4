@@ -1,0 +1,23 @@
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def idsList = vars.getObject("k5_id_list")  
+if (!idsList || idsList.isEmpty()) {
+    log.error("❌ ERROR: No IDs found for processing!")
+    return
+}
+
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def objectMapper = new ObjectMapper()
+def k4Records = objectMapper.readTree(k4File)
+
+idsList.each { uniqueId ->
+    def matchedRecord = k4Records.find { it.get("unique_id").asText() == uniqueId }
+    
+    if (matchedRecord) {
+        vars.put("k4_record_" + uniqueId, matchedRecord.toString())  
+        log.info("✅ Found matching K4 record for ID: " + uniqueId)
+    } else {
+        log.warn("❌ No matching record found in K4 for ID: " + uniqueId)
+    }
+}
