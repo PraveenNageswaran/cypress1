@@ -1,0 +1,18 @@
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+
+def filteredK4File = Paths.get("C:/workspace/k4_filtered.json").toFile()
+def objectMapper = new ObjectMapper()
+def k4Data = objectMapper.readTree(filteredK4File)
+
+// ✅ Store K4 records in a JMeter **global properties** map
+def k4Map = [:]
+k4Data.each { record ->
+    if (record.has("unique_id")) {
+        k4Map[record.get("unique_id").asText()] = record
+    }
+}
+
+// ✅ Store map globally so all threads can access
+props.put("k4_records", k4Map)
+log.info("✅ Loaded " + k4Map.size() + " K4 records into memory.")
