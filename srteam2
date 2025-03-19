@@ -1,0 +1,20 @@
+import java.nio.file.*
+import java.io.*
+
+def tempFile = Paths.get("C:/workspace/k5_ids.txt").toFile()
+if (!tempFile.exists()) {
+    log.error("❌ ERROR: Temp file not found!")
+    return
+}
+
+def ids = tempFile.readLines()
+if (ids.isEmpty()) {
+    log.error("❌ ERROR: No IDs found in temp file!")
+    return
+}
+
+vars.put("k5_total_ids", ids.size().toString())  // ✅ Store count for reference
+vars.put("k5_current_id", ids[0])  // ✅ Start with first ID
+vars.putObject("k5_id_list", ids)  // ✅ Store list of IDs
+
+log.info("✅ Loaded " + ids.size() + " unique IDs for processing.")
