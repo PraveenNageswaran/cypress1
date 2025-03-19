@@ -1,0 +1,42 @@
+import com.fasterxml.jackson.databind.*
+import groovy.json.JsonOutput
+
+def filteredK4File = Paths.get("C:/workspace/k4_filtered.json").toFile()
+def objectMapper = new ObjectMapper()
+def k4Data = objectMapper.readTree(filteredK4File)
+
+// ✅ Store K4 records in a HashMap (Faster Lookup)
+def k4Map = [:]
+k4Data.each { record ->
+    if (record.has("unique_id")) {
+        k4Map[record.get("unique_id").asText()] = record
+    }
+}
+
+// ✅ Get current K5 record unique ID
+def uniqueId = vars.get("k5_id")  
+
+if (!k4Map.containsKey(uniqueId)) {
+    log.warn("❌ No matching record found in K4 for ID: " + uniqueId)
+    return
+}
+
+def k5Record = new ObjectMapper().readTree(vars.get("k5_record"))
+def k4Record = k4Map[uniqueId]
+
+def mismatches = []
+k5Record.fields().each { entry ->
+    def key = entry.getKey()
+    def k5Value = entry.getValue().asText()
+    def k4Value = k4Record.has(key) ? k4Record.get(key).asText() : "❌ MISSING"
+    
+    if (k5Value != k4Value) {
+        mismatches.add("🔸 Key: " + key + " | K5: " + k5Value + " | K4: " + k4Value)
+    }
+}
+
+if (mismatches.isEmpty()) {
+    log.info("✅ Matched record for ID: " + uniqueId)
+} else {
+    log.error("❌ MISMATCH for ID: " + uniqueId + "\n" + JsonOutput.prettyPrint(JsonOutput.toJson(mismatches)))
+}
