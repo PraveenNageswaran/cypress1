@@ -1,0 +1,45 @@
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+import java.nio.file.*
+import org.apache.jmeter.services.FileServer
+
+// ✅ Get unique ID file from FileServer
+def idFilePath = FileServer.getFileServer().getFile(vars.get("k5_id_file"))
+def idFile = Paths.get(idFilePath).toFile()
+def k4File = Paths.get("C:/workspace/k4.json").toFile()
+def outputTempFile = Paths.get("C:/workspace/k4_filtered.json").toFile()  // ✅ Store filtered K4 records
+
+if (!Files.exists(idFile.toPath())) {
+    log.error("❌ ERROR: Unique ID file not found: " + idFilePath)
+    return
+}
+
+// ✅ Read unique IDs into a Set for fast lookup
+def uniqueIds = idFile.readLines().toSet()
+
+def jsonFactory = new JsonFactory()
+def objectMapper = new ObjectMapper()
+def parser = jsonFactory.createParser(k4File)
+
+outputTempFile.withWriter("UTF-8") { writer ->
+    writer.write("[")  // Start JSON array
+
+    def firstRecord = true
+    while (parser.nextToken() != JsonToken.START_ARRAY) {}  // Move to array start
+
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
+        if (parser.currentToken() == JsonToken.START_OBJECT) {
+            def node = objectMapper.readTree(parser)
+            def uniqueId = node.get("unique_id").asText()
+
+            if (uniqueIds.contains(uniqueId)) {  // ✅ Filter only matching records
+                if (!firstRecord) writer.write(",")  // Add comma between records
+                writer.write(node.toString())
+                firstRecord = false
+            }
+        }
+    }
+    writer.write("]")  // End JSON array
+}
+parser.close()
+log.info("✅ Filtered K4 records saved to " + outputTempFile.absolutePath)
