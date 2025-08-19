@@ -1,0 +1,33 @@
+import requests
+from requests.auth import HTTPBasicAuth
+import json
+
+# Jira URL and issue key
+jira_url = "https://your-domain.atlassian.net"
+issue_key = "PROJECT-123"   # replace with your issue key
+
+# Jira credentials
+email = "your-email@example.com"   # your Atlassian email
+api_token = "your_api_token"       # generate from https://id.atlassian.com/manage/api-tokens
+
+# Build request
+url = f"{jira_url}/rest/api/3/issue/{issue_key}"
+
+auth = HTTPBasicAuth(email, api_token)
+headers = {
+    "Accept": "application/json"
+}
+
+response = requests.get(url, headers=headers, auth=auth)
+
+# Parse response
+if response.status_code == 200:
+    issue = response.json()
+    print(json.dumps(issue, indent=2))  # pretty print full issue details
+
+    # Example: print specific fields
+    print("Issue Key:", issue["key"])
+    print("Summary:", issue["fields"]["summary"])
+    print("Status:", issue["fields"]["status"]["name"])
+else:
+    print("Failed to fetch issue:", response.status_code, response.text)
